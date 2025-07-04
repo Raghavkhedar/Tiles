@@ -374,31 +374,37 @@ export interface Database {
           invoice_date: string
           due_date: string
           subtotal: number
-          gst_amount: number
+          cgst_amount: number
+          sgst_amount: number
+          igst_amount: number
           total_amount: number
-          paid_amount: number
-          balance_amount: number
-          status: string
+          discount_amount: number
+          tax_rate: number
           payment_terms: string
+          status: string
           notes: string | null
+          terms_conditions: string | null
           user_id: string
           created_at: string
           updated_at: string
         }
         Insert: {
           id?: string
-          invoice_number: string
+          invoice_number?: string
           customer_id: string
           invoice_date: string
           due_date: string
           subtotal?: number
-          gst_amount?: number
+          cgst_amount?: number
+          sgst_amount?: number
+          igst_amount?: number
           total_amount?: number
-          paid_amount?: number
-          balance_amount?: number
-          status?: string
+          discount_amount?: number
+          tax_rate?: number
           payment_terms?: string
+          status?: string
           notes?: string | null
+          terms_conditions?: string | null
           user_id: string
           created_at?: string
           updated_at?: string
@@ -410,13 +416,16 @@ export interface Database {
           invoice_date?: string
           due_date?: string
           subtotal?: number
-          gst_amount?: number
+          cgst_amount?: number
+          sgst_amount?: number
+          igst_amount?: number
           total_amount?: number
-          paid_amount?: number
-          balance_amount?: number
-          status?: string
+          discount_amount?: number
+          tax_rate?: number
           payment_terms?: string
+          status?: string
           notes?: string | null
+          terms_conditions?: string | null
           user_id?: string
           created_at?: string
           updated_at?: string
@@ -426,31 +435,46 @@ export interface Database {
         Row: {
           id: string
           invoice_id: string
-          product_id: string
+          product_id: string | null
+          product_name: string
+          product_sku: string | null
           quantity: number
           unit_price: number
           total_price: number
-          area_covered: number | null
+          tax_rate: number
+          tax_amount: number
+          discount_percent: number
+          discount_amount: number
           created_at: string
         }
         Insert: {
           id?: string
           invoice_id: string
-          product_id: string
+          product_id?: string | null
+          product_name: string
+          product_sku?: string | null
           quantity: number
           unit_price: number
           total_price: number
-          area_covered?: number | null
+          tax_rate?: number
+          tax_amount?: number
+          discount_percent?: number
+          discount_amount?: number
           created_at?: string
         }
         Update: {
           id?: string
           invoice_id?: string
-          product_id?: string
+          product_id?: string | null
+          product_name?: string
+          product_sku?: string | null
           quantity?: number
           unit_price?: number
           total_price?: number
-          area_covered?: number | null
+          tax_rate?: number
+          tax_amount?: number
+          discount_percent?: number
+          discount_amount?: number
           created_at?: string
         }
       }
@@ -653,4 +677,21 @@ export interface DeliveryWithRelations extends Delivery {
 
 export interface DeliveryItemWithProduct extends DeliveryItem {
   product?: Product
+}
+
+// Tax Rate type for GST slabs
+export interface TaxRate {
+  id: string;
+  name: string;
+  rate: number;
+  description?: string;
+  is_active: boolean;
+  created_at: string;
+}
+
+// Updated extended types for new billing system
+export interface PaymentWithRelations extends Payment {
+  invoice?: Invoice;
 } 
+
+ 

@@ -52,6 +52,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import Link from "next/link";
 import { useToast } from "@/components/ui/use-toast";
+import Breadcrumb from "@/components/breadcrumb";
 
 export default function SuppliersPage() {
   const router = useRouter();
@@ -226,6 +227,9 @@ export default function SuppliersPage() {
       <DashboardNavbar />
       <main className="w-full bg-gray-50 min-h-screen">
         <div className="container mx-auto px-4 py-8">
+          {/* Breadcrumb */}
+          <Breadcrumb items={[{ label: "Supplier Management" }]} />
+          
           {/* Header */}
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
             <div>
@@ -363,105 +367,115 @@ export default function SuppliersPage() {
                   )}
                 </div>
               ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Supplier Details</TableHead>
-                      <TableHead>Contact Information</TableHead>
-                      <TableHead>GST/PAN</TableHead>
-                      <TableHead>Rating</TableHead>
-                      <TableHead>Credit Info</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredSuppliers.map((supplier) => {
-                      const statusBadge = getStatusBadge(supplier.status);
-                      return (
-                        <TableRow key={supplier.id}>
-                          <TableCell>
-                            <div>
-                              <div className="font-medium">{supplier.name}</div>
-                              <div className="text-sm text-gray-500">
-                                {supplier.contact_person || 'N/A'}
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-gray-50 hover:bg-gray-50">
+                        <TableHead className="font-semibold text-gray-900">Supplier Details</TableHead>
+                        <TableHead className="font-semibold text-gray-900">Contact Information</TableHead>
+                        <TableHead className="font-semibold text-gray-900">GST/PAN</TableHead>
+                        <TableHead className="font-semibold text-gray-900">Rating</TableHead>
+                        <TableHead className="font-semibold text-gray-900">Credit Info</TableHead>
+                        <TableHead className="font-semibold text-gray-900">Status</TableHead>
+                        <TableHead className="font-semibold text-gray-900">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredSuppliers.map((supplier, index) => {
+                        const statusBadge = getStatusBadge(supplier.status);
+                        return (
+                          <TableRow 
+                            key={supplier.id}
+                            className={`hover:bg-gray-50 transition-colors duration-150 ${
+                              index % 2 === 0 ? 'bg-white' : 'bg-gray-25'
+                            }`}
+                          >
+                            <TableCell className="py-4">
+                              <div>
+                                <div className="font-medium text-gray-900">{supplier.name}</div>
+                                <div className="text-sm text-gray-500">
+                                  {supplier.contact_person || 'N/A'}
+                                </div>
+                                <div className="text-sm text-gray-500 flex items-center gap-1 mt-1">
+                                  <MapPin className="h-3 w-3" />
+                                  {formatAddress(supplier.address)}
+                                </div>
                               </div>
-                              <div className="text-sm text-gray-500 flex items-center gap-1 mt-1">
-                                <MapPin className="h-3 w-3" />
-                                {formatAddress(supplier.address)}
+                            </TableCell>
+                            <TableCell className="py-4">
+                              <div className="space-y-1">
+                                <div className="flex items-center gap-1 text-sm">
+                                  <Phone className="h-3 w-3" />
+                                  <span className="text-gray-700">{supplier.phone || 'N/A'}</span>
+                                </div>
+                                <div className="flex items-center gap-1 text-sm">
+                                  <Mail className="h-3 w-3" />
+                                  <span className="text-gray-700">{supplier.email || 'N/A'}</span>
+                                </div>
                               </div>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <div className="space-y-1">
-                              <div className="flex items-center gap-1 text-sm">
-                                <Phone className="h-3 w-3" />
-                                {supplier.phone || 'N/A'}
+                            </TableCell>
+                            <TableCell className="py-4">
+                              <div className="space-y-1">
+                                <div className="text-sm font-mono text-gray-700">
+                                  GST: {supplier.gst_number || 'N/A'}
+                                </div>
+                                <div className="text-sm font-mono text-gray-700">
+                                  PAN: {supplier.pan_number || 'N/A'}
+                                </div>
                               </div>
-                              <div className="flex items-center gap-1 text-sm">
-                                <Mail className="h-3 w-3" />
-                                {supplier.email || 'N/A'}
+                            </TableCell>
+                            <TableCell className="py-4">
+                              {renderRating(supplier.rating)}
+                            </TableCell>
+                            <TableCell className="py-4">
+                              <div>
+                                <div className="text-sm text-gray-500">
+                                  Credit limit: ₹{(supplier.credit_limit || 0).toLocaleString()}
+                                </div>
+                                <div className="text-sm text-gray-500">
+                                  Terms: {supplier.payment_terms || 'N/A'}
+                                </div>
                               </div>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <div className="space-y-1">
-                              <div className="text-sm font-mono">
-                                GST: {supplier.gst_number || 'N/A'}
+                            </TableCell>
+                            <TableCell className="py-4">
+                              <Badge variant={statusBadge.variant} className={statusBadge.className}>
+                                {supplier.status || 'Active'}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="py-4">
+                              <div className="flex gap-1">
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm"
+                                  className="h-8 w-8 p-0 hover:bg-gray-100"
+                                  onClick={() => router.push(`/dashboard/suppliers/view/${supplier.id}`)}
+                                >
+                                  <Eye className="h-4 w-4" />
+                                </Button>
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm"
+                                  className="h-8 w-8 p-0 hover:bg-gray-100"
+                                  onClick={() => router.push(`/dashboard/suppliers/edit/${supplier.id}`)}
+                                >
+                                  <Edit className="h-4 w-4" />
+                                </Button>
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm"
+                                  className="h-8 w-8 p-0 hover:bg-red-50 hover:text-red-600"
+                                  onClick={() => openDeleteDialog(supplier)}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
                               </div>
-                              <div className="text-sm font-mono">
-                                PAN: {supplier.pan_number || 'N/A'}
-                              </div>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            {renderRating(supplier.rating)}
-                          </TableCell>
-                          <TableCell>
-                            <div>
-                              <div className="text-sm text-gray-500">
-                                Credit limit: ₹{(supplier.credit_limit || 0).toLocaleString()}
-                              </div>
-                              <div className="text-sm text-gray-500">
-                                Terms: {supplier.payment_terms || 'N/A'}
-                              </div>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <Badge variant={statusBadge.variant} className={statusBadge.className}>
-                              {supplier.status || 'Active'}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex gap-2">
-                              <Button 
-                                variant="ghost" 
-                                size="sm"
-                                onClick={() => router.push(`/dashboard/suppliers/view/${supplier.id}`)}
-                              >
-                                <Eye className="h-4 w-4" />
-                              </Button>
-                              <Button 
-                                variant="ghost" 
-                                size="sm"
-                                onClick={() => router.push(`/dashboard/suppliers/edit/${supplier.id}`)}
-                              >
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                              <Button 
-                                variant="ghost" 
-                                size="sm"
-                                onClick={() => openDeleteDialog(supplier)}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </div>
               )}
             </CardContent>
           </Card>

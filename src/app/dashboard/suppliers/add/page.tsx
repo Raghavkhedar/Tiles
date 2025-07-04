@@ -35,6 +35,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
 import Link from "next/link";
+import Breadcrumb from "@/components/breadcrumb";
 
 export default function AddSupplierPage() {
   const router = useRouter();
@@ -128,6 +129,12 @@ export default function AddSupplierPage() {
       <DashboardNavbar />
       <main className="w-full bg-gray-50 min-h-screen">
         <div className="container mx-auto px-4 py-8">
+          {/* Breadcrumb */}
+          <Breadcrumb items={[
+            { label: "Supplier Management", href: "/dashboard/suppliers" },
+            { label: "Add Supplier" }
+          ]} />
+          
           {/* Header */}
           <div className="flex items-center gap-4 mb-8">
             <Link href="/dashboard/suppliers">
@@ -151,69 +158,77 @@ export default function AddSupplierPage() {
               {/* Supplier Form */}
               <div className="lg:col-span-2 space-y-6">
                 {/* Basic Information */}
-                <Card>
-                  <CardHeader>
+                <Card className="hover:shadow-md transition-shadow duration-200">
+                  <CardHeader className="border-b bg-gray-50">
                     <CardTitle className="flex items-center gap-2">
-                      <Building className="h-5 w-5" />
+                      <Building className="h-5 w-5 text-blue-600" />
                       Company Information
                     </CardTitle>
                     <CardDescription>
                       Enter the supplier's basic company details
                     </CardDescription>
                   </CardHeader>
-                  <CardContent className="space-y-4">
+                  <CardContent className="space-y-4 pt-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="name">Company Name *</Label>
+                      <div className="space-y-2">
+                        <Label htmlFor="name" className="text-sm font-medium">
+                          Company Name <span className="text-red-500">*</span>
+                        </Label>
                         <Input
                           id="name"
                           value={formData.name}
                           onChange={(e) => handleInputChange('name', e.target.value)}
                           placeholder="ABC Ceramics Ltd"
                           required
+                          className="focus:ring-2 focus:ring-orange-500"
                         />
                       </div>
-                      <div>
-                        <Label htmlFor="contact_person">Contact Person *</Label>
+                      <div className="space-y-2">
+                        <Label htmlFor="contact_person" className="text-sm font-medium">
+                          Contact Person <span className="text-red-500">*</span>
+                        </Label>
                         <Input
                           id="contact_person"
                           value={formData.contact_person}
                           onChange={(e) => handleInputChange('contact_person', e.target.value)}
                           placeholder="Ramesh Gupta"
                           required
+                          className="focus:ring-2 focus:ring-orange-500"
                         />
                       </div>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="gst_number">GST Number</Label>
+                      <div className="space-y-2">
+                        <Label htmlFor="gst_number" className="text-sm font-medium">GST Number</Label>
                         <Input
                           id="gst_number"
                           value={formData.gst_number}
                           onChange={(e) => handleInputChange('gst_number', e.target.value)}
                           placeholder="24AABCA1234B1Z5"
                           maxLength={15}
+                          className="focus:ring-2 focus:ring-orange-500"
                         />
                       </div>
-                      <div>
-                        <Label htmlFor="pan_number">PAN Number</Label>
+                      <div className="space-y-2">
+                        <Label htmlFor="pan_number" className="text-sm font-medium">PAN Number</Label>
                         <Input
                           id="pan_number"
                           value={formData.pan_number}
                           onChange={(e) => handleInputChange('pan_number', e.target.value)}
                           placeholder="AABCA1234B"
                           maxLength={10}
+                          className="focus:ring-2 focus:ring-orange-500"
                         />
                       </div>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="rating">Rating</Label>
+                      <div className="space-y-2">
+                        <Label htmlFor="rating" className="text-sm font-medium">Rating</Label>
                         <Select
                           value={formData.rating}
                           onValueChange={(value) => handleInputChange('rating', value)}
                         >
-                          <SelectTrigger>
+                          <SelectTrigger className="focus:ring-2 focus:ring-orange-500">
                             <SelectValue placeholder="Select rating" />
                           </SelectTrigger>
                           <SelectContent>
@@ -225,13 +240,13 @@ export default function AddSupplierPage() {
                           </SelectContent>
                         </Select>
                       </div>
-                      <div>
-                        <Label htmlFor="status">Status</Label>
+                      <div className="space-y-2">
+                        <Label htmlFor="status" className="text-sm font-medium">Status</Label>
                         <Select
                           value={formData.status}
                           onValueChange={(value) => handleInputChange('status', value)}
                         >
-                          <SelectTrigger>
+                          <SelectTrigger className="focus:ring-2 focus:ring-orange-500">
                             <SelectValue placeholder="Select status" />
                           </SelectTrigger>
                           <SelectContent>
@@ -245,17 +260,22 @@ export default function AddSupplierPage() {
                 </Card>
 
                 {/* Contact Information */}
-                <Card>
-                  <CardHeader>
+                <Card className="hover:shadow-md transition-shadow duration-200">
+                  <CardHeader className="border-b bg-gray-50">
                     <CardTitle className="flex items-center gap-2">
-                      <Phone className="h-5 w-5" />
+                      <Phone className="h-5 w-5 text-green-600" />
                       Contact Information
                     </CardTitle>
+                    <CardDescription>
+                      Primary contact details for the supplier
+                    </CardDescription>
                   </CardHeader>
-                  <CardContent className="space-y-4">
+                  <CardContent className="space-y-4 pt-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="phone">Primary Phone *</Label>
+                      <div className="space-y-2">
+                        <Label htmlFor="phone" className="text-sm font-medium">
+                          Primary Phone <span className="text-red-500">*</span>
+                        </Label>
                         <Input
                           id="phone"
                           type="tel"
@@ -263,16 +283,18 @@ export default function AddSupplierPage() {
                           onChange={(e) => handleInputChange('phone', e.target.value)}
                           placeholder="+91 98765 43210"
                           required
+                          className="focus:ring-2 focus:ring-orange-500"
                         />
                       </div>
-                      <div>
-                        <Label htmlFor="email">Email Address</Label>
+                      <div className="space-y-2">
+                        <Label htmlFor="email" className="text-sm font-medium">Email Address</Label>
                         <Input
                           id="email"
                           type="email"
                           value={formData.email}
                           onChange={(e) => handleInputChange('email', e.target.value)}
                           placeholder="ramesh@abcceramics.com"
+                          className="focus:ring-2 focus:ring-orange-500"
                         />
                       </div>
                     </div>
@@ -280,41 +302,46 @@ export default function AddSupplierPage() {
                 </Card>
 
                 {/* Address Information */}
-                <Card>
-                  <CardHeader>
+                <Card className="hover:shadow-md transition-shadow duration-200">
+                  <CardHeader className="border-b bg-gray-50">
                     <CardTitle className="flex items-center gap-2">
-                      <MapPin className="h-5 w-5" />
+                      <MapPin className="h-5 w-5 text-purple-600" />
                       Address Information
                     </CardTitle>
+                    <CardDescription>
+                      Complete address details for delivery and billing
+                    </CardDescription>
                   </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div>
-                      <Label htmlFor="address">Complete Address</Label>
+                  <CardContent className="space-y-4 pt-6">
+                    <div className="space-y-2">
+                      <Label htmlFor="address" className="text-sm font-medium">Complete Address</Label>
                       <Textarea
                         id="address"
                         value={formData.address}
                         onChange={(e) => handleInputChange('address', e.target.value)}
                         placeholder="Industrial Area, Phase 1, Morbi, Gujarat 363641"
                         rows={3}
+                        className="focus:ring-2 focus:ring-orange-500"
                       />
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <div>
-                        <Label htmlFor="city">City</Label>
+                      <div className="space-y-2">
+                        <Label htmlFor="city" className="text-sm font-medium">City</Label>
                         <Input 
                           id="city" 
                           value={formData.city}
                           onChange={(e) => handleInputChange('city', e.target.value)}
                           placeholder="Morbi" 
+                          className="focus:ring-2 focus:ring-orange-500"
                         />
                       </div>
-                      <div>
-                        <Label htmlFor="state">State</Label>
+                      <div className="space-y-2">
+                        <Label htmlFor="state" className="text-sm font-medium">State</Label>
                         <Select
                           value={formData.state}
                           onValueChange={(value) => handleInputChange('state', value)}
                         >
-                          <SelectTrigger>
+                          <SelectTrigger className="focus:ring-2 focus:ring-orange-500">
                             <SelectValue placeholder="Select state" />
                           </SelectTrigger>
                           <SelectContent>
@@ -331,14 +358,15 @@ export default function AddSupplierPage() {
                           </SelectContent>
                         </Select>
                       </div>
-                      <div>
-                        <Label htmlFor="pincode">PIN Code</Label>
+                      <div className="space-y-2">
+                        <Label htmlFor="pincode" className="text-sm font-medium">PIN Code</Label>
                         <Input
                           id="pincode"
                           value={formData.pincode}
                           onChange={(e) => handleInputChange('pincode', e.target.value)}
                           placeholder="363641"
                           maxLength={6}
+                          className="focus:ring-2 focus:ring-orange-500"
                         />
                       </div>
                     </div>
@@ -348,19 +376,19 @@ export default function AddSupplierPage() {
 
               {/* Business Settings */}
               <div className="space-y-6">
-                <Card>
-                  <CardHeader>
+                <Card className="hover:shadow-md transition-shadow duration-200">
+                  <CardHeader className="border-b bg-gray-50">
                     <CardTitle className="flex items-center gap-2">
-                      <Package className="h-5 w-5" />
+                      <Package className="h-5 w-5 text-orange-600" />
                       Business Settings
                     </CardTitle>
                     <CardDescription>
                       Configure payment and credit terms
                     </CardDescription>
                   </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div>
-                      <Label htmlFor="credit_limit">Credit Limit (₹)</Label>
+                  <CardContent className="space-y-4 pt-6">
+                    <div className="space-y-2">
+                      <Label htmlFor="credit_limit" className="text-sm font-medium">Credit Limit (₹)</Label>
                       <Input
                         id="credit_limit"
                         type="number"
@@ -368,15 +396,16 @@ export default function AddSupplierPage() {
                         onChange={(e) => handleInputChange('credit_limit', e.target.value)}
                         placeholder="100000"
                         min="0"
+                        className="focus:ring-2 focus:ring-orange-500"
                       />
                     </div>
-                    <div>
-                      <Label htmlFor="payment_terms">Payment Terms</Label>
+                    <div className="space-y-2">
+                      <Label htmlFor="payment_terms" className="text-sm font-medium">Payment Terms</Label>
                       <Select
                         value={formData.payment_terms}
                         onValueChange={(value) => handleInputChange('payment_terms', value)}
                       >
-                        <SelectTrigger>
+                        <SelectTrigger className="focus:ring-2 focus:ring-orange-500">
                           <SelectValue placeholder="Select terms" />
                         </SelectTrigger>
                         <SelectContent>
@@ -392,23 +421,28 @@ export default function AddSupplierPage() {
                 </Card>
 
                 {/* Save Button */}
-                <Card>
+                <Card className="hover:shadow-md transition-shadow duration-200">
                   <CardContent className="pt-6">
                     <div className="space-y-4">
                       <Button 
                         type="submit" 
-                        className="w-full bg-orange-600 hover:bg-orange-700"
+                        className="w-full bg-orange-600 hover:bg-orange-700 focus:ring-2 focus:ring-orange-500"
                         disabled={saving}
                       >
                         {saving ? (
-                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          <>
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            Creating Supplier...
+                          </>
                         ) : (
-                          <Save className="h-4 w-4 mr-2" />
+                          <>
+                            <Save className="h-4 w-4 mr-2" />
+                            Create Supplier
+                          </>
                         )}
-                        {saving ? 'Creating Supplier...' : 'Create Supplier'}
                       </Button>
                       <Link href="/dashboard/suppliers">
-                        <Button variant="outline" className="w-full">
+                        <Button variant="outline" className="w-full hover:bg-gray-50">
                           Cancel
                         </Button>
                       </Link>

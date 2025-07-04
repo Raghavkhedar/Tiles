@@ -34,6 +34,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import Link from "next/link";
 import { useToast } from "@/components/ui/use-toast";
+import Breadcrumb from "@/components/breadcrumb";
 
 export default function AddProductPage() {
   const router = useRouter();
@@ -179,6 +180,12 @@ export default function AddProductPage() {
       <DashboardNavbar />
       <main className="w-full bg-gray-50 min-h-screen">
         <div className="container mx-auto px-4 py-8">
+          {/* Breadcrumb */}
+          <Breadcrumb items={[
+            { label: "Inventory Management", href: "/dashboard/inventory" },
+            { label: "Add Product" }
+          ]} />
+          
           {/* Header */}
           <div className="flex items-center gap-4 mb-8">
             <Link href="/dashboard/inventory">
@@ -202,44 +209,58 @@ export default function AddProductPage() {
               {/* Product Form */}
               <div className="lg:col-span-2 space-y-6">
                 {/* Basic Information */}
-                <Card>
-                  <CardHeader>
+                <Card className="hover:shadow-md transition-shadow duration-200">
+                  <CardHeader className="border-b bg-gray-50">
                     <CardTitle className="flex items-center gap-2">
-                      <Package className="h-5 w-5" />
+                      <Package className="h-5 w-5 text-blue-600" />
                       Product Information
                     </CardTitle>
                     <CardDescription>
                       Enter the basic details of the tile product
                     </CardDescription>
                   </CardHeader>
-                  <CardContent className="space-y-4">
+                  <CardContent className="space-y-4 pt-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="productName">Product Name *</Label>
+                      <div className="space-y-2">
+                        <Label htmlFor="productName" className="text-sm font-medium">
+                          Product Name <span className="text-red-500">*</span>
+                        </Label>
                         <Input
                           id="productName"
                           placeholder="Ceramic Floor Tiles - White"
                           value={formData.name}
                           onChange={(e) => handleInputChange('name', e.target.value)}
                           required
+                          className="focus:ring-2 focus:ring-orange-500"
+                          aria-describedby="productName-help"
                         />
+                        <p id="productName-help" className="text-xs text-gray-500 mt-1">
+                          Enter the full product name as it appears on packaging
+                        </p>
                       </div>
-                      <div>
-                        <Label htmlFor="sku">SKU/Product Code *</Label>
+                      <div className="space-y-2">
+                        <Label htmlFor="sku" className="text-sm font-medium">
+                          SKU/Product Code <span className="text-red-500">*</span>
+                        </Label>
                         <Input 
                           id="sku" 
                           placeholder="CFT-WHT-001" 
                           value={formData.sku}
                           onChange={(e) => handleInputChange('sku', e.target.value)}
                           required 
+                          className="focus:ring-2 focus:ring-orange-500"
+                          aria-describedby="sku-help"
                         />
+                        <p id="sku-help" className="text-xs text-gray-500 mt-1">
+                          Unique product identifier code
+                        </p>
                       </div>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="category">Category</Label>
+                      <div className="space-y-2">
+                        <Label htmlFor="category" className="text-sm font-medium">Category</Label>
                         <Select value={formData.category_id} onValueChange={(value) => handleInputChange('category_id', value)}>
-                          <SelectTrigger>
+                          <SelectTrigger className="focus:ring-2 focus:ring-orange-500">
                             <SelectValue placeholder="Select category" />
                           </SelectTrigger>
                           <SelectContent>
@@ -251,64 +272,68 @@ export default function AddProductPage() {
                           </SelectContent>
                         </Select>
                       </div>
-                      <div>
-                        <Label htmlFor="brand">Brand</Label>
+                      <div className="space-y-2">
+                        <Label htmlFor="brand" className="text-sm font-medium">Brand</Label>
                         <Input 
                           id="brand" 
                           placeholder="Kajaria, Somany, etc." 
                           value={formData.brand}
                           onChange={(e) => handleInputChange('brand', e.target.value)}
+                          className="focus:ring-2 focus:ring-orange-500"
                         />
                       </div>
                     </div>
-                    <div>
-                      <Label htmlFor="description">Description</Label>
+                    <div className="space-y-2">
+                      <Label htmlFor="description" className="text-sm font-medium">Description</Label>
                       <Textarea
                         id="description"
                         placeholder="Detailed description of the tile product..."
                         rows={3}
                         value={formData.description}
                         onChange={(e) => handleInputChange('description', e.target.value)}
+                        className="focus:ring-2 focus:ring-orange-500"
                       />
                     </div>
                   </CardContent>
                 </Card>
 
                 {/* Specifications */}
-                <Card>
-                  <CardHeader>
+                <Card className="hover:shadow-md transition-shadow duration-200">
+                  <CardHeader className="border-b bg-gray-50">
                     <CardTitle className="flex items-center gap-2">
-                      <Calculator className="h-5 w-5" />
+                      <Calculator className="h-5 w-5 text-green-600" />
                       Tile Specifications
                     </CardTitle>
                     <CardDescription>
                       Enter size and packaging details
                     </CardDescription>
                   </CardHeader>
-                  <CardContent className="space-y-4">
+                  <CardContent className="space-y-4 pt-6">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <div>
-                        <Label htmlFor="length">Length (cm)</Label>
+                      <div className="space-y-2">
+                        <Label htmlFor="length" className="text-sm font-medium">Length (cm)</Label>
                         <Input
                           id="length"
                           type="number"
                           placeholder="60"
                           value={formData.length}
                           onChange={(e) => handleInputChange('length', e.target.value)}
+                          className="focus:ring-2 focus:ring-orange-500"
                         />
                       </div>
-                      <div>
-                        <Label htmlFor="width">Width (cm)</Label>
+                      <div className="space-y-2">
+                        <Label htmlFor="width" className="text-sm font-medium">Width (cm)</Label>
                         <Input
                           id="width"
                           type="number"
                           placeholder="60"
                           value={formData.width}
                           onChange={(e) => handleInputChange('width', e.target.value)}
+                          className="focus:ring-2 focus:ring-orange-500"
                         />
                       </div>
-                      <div>
-                        <Label htmlFor="thickness">Thickness (mm)</Label>
+                      <div className="space-y-2">
+                        <Label htmlFor="thickness" className="text-sm font-medium">Thickness (mm)</Label>
                         <Input
                           id="thickness"
                           type="number"
@@ -316,12 +341,15 @@ export default function AddProductPage() {
                           step="0.1"
                           value={formData.thickness}
                           onChange={(e) => handleInputChange('thickness', e.target.value)}
+                          className="focus:ring-2 focus:ring-orange-500"
                         />
                       </div>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <div>
-                        <Label htmlFor="tilesPerBox">Tiles per Box *</Label>
+                      <div className="space-y-2">
+                        <Label htmlFor="tilesPerBox" className="text-sm font-medium">
+                          Tiles per Box <span className="text-red-500">*</span>
+                        </Label>
                         <Input
                           id="tilesPerBox"
                           type="number"
@@ -329,10 +357,13 @@ export default function AddProductPage() {
                           value={formData.tiles_per_box}
                           onChange={(e) => handleInputChange('tiles_per_box', e.target.value)}
                           required
+                          className="focus:ring-2 focus:ring-orange-500"
                         />
                       </div>
-                      <div>
-                        <Label htmlFor="areaPerBox">Area per Box (m²) *</Label>
+                      <div className="space-y-2">
+                        <Label htmlFor="areaPerBox" className="text-sm font-medium">
+                          Area per Box (m²) <span className="text-red-500">*</span>
+                        </Label>
                         <Input
                           id="areaPerBox"
                           type="number"
@@ -341,10 +372,11 @@ export default function AddProductPage() {
                           value={formData.area_per_box}
                           onChange={(e) => handleInputChange('area_per_box', e.target.value)}
                           required
+                          className="focus:ring-2 focus:ring-orange-500"
                         />
                       </div>
-                      <div>
-                        <Label htmlFor="weightPerBox">Weight per Box (kg)</Label>
+                      <div className="space-y-2">
+                        <Label htmlFor="weightPerBox" className="text-sm font-medium">Weight per Box (kg)</Label>
                         <Input
                           id="weightPerBox"
                           type="number"
@@ -352,6 +384,7 @@ export default function AddProductPage() {
                           step="0.1"
                           value={formData.weight_per_box}
                           onChange={(e) => handleInputChange('weight_per_box', e.target.value)}
+                          className="focus:ring-2 focus:ring-orange-500"
                         />
                       </div>
                     </div>
@@ -359,16 +392,22 @@ export default function AddProductPage() {
                 </Card>
 
                 {/* Supplier Information */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Supplier Information</CardTitle>
+                <Card className="hover:shadow-md transition-shadow duration-200">
+                  <CardHeader className="border-b bg-gray-50">
+                    <CardTitle className="flex items-center gap-2">
+                      <Package className="h-5 w-5 text-purple-600" />
+                      Supplier Information
+                    </CardTitle>
+                    <CardDescription>
+                      Select the primary supplier for this product
+                    </CardDescription>
                   </CardHeader>
-                  <CardContent className="space-y-4">
+                  <CardContent className="space-y-4 pt-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="supplier">Primary Supplier</Label>
+                      <div className="space-y-2">
+                        <Label htmlFor="supplier" className="text-sm font-medium">Primary Supplier</Label>
                         <Select value={formData.supplier_id} onValueChange={(value) => handleInputChange('supplier_id', value)}>
-                          <SelectTrigger>
+                          <SelectTrigger className="focus:ring-2 focus:ring-orange-500">
                             <SelectValue placeholder="Select supplier" />
                           </SelectTrigger>
                           <SelectContent>
@@ -380,11 +419,11 @@ export default function AddProductPage() {
                           </SelectContent>
                         </Select>
                       </div>
-                      <div>
-                        <Label htmlFor="supplierCode">
+                      <div className="space-y-2">
+                        <Label htmlFor="supplierCode" className="text-sm font-medium">
                           Supplier Product Code
                         </Label>
-                        <Input id="supplierCode" placeholder="SUP-CFT-001" />
+                        <Input id="supplierCode" placeholder="SUP-CFT-001" className="focus:ring-2 focus:ring-orange-500" />
                       </div>
                     </div>
                   </CardContent>
@@ -393,17 +432,20 @@ export default function AddProductPage() {
 
               {/* Pricing and Stock */}
               <div className="space-y-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Pricing Information</CardTitle>
+                <Card className="hover:shadow-md transition-shadow duration-200">
+                  <CardHeader className="border-b bg-gray-50">
+                    <CardTitle className="flex items-center gap-2">
+                      <Calculator className="h-5 w-5 text-orange-600" />
+                      Pricing Information
+                    </CardTitle>
                     <CardDescription>
                       Set purchase and selling prices
                     </CardDescription>
                   </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div>
-                      <Label htmlFor="sellingPrice">
-                        Selling Price per Box (₹) *
+                  <CardContent className="space-y-4 pt-6">
+                    <div className="space-y-2">
+                      <Label htmlFor="sellingPrice" className="text-sm font-medium">
+                        Selling Price per Box (₹) <span className="text-red-500">*</span>
                       </Label>
                       <Input
                         id="sellingPrice"
@@ -414,21 +456,25 @@ export default function AddProductPage() {
                         value={formData.price_per_box}
                         onChange={(e) => handleInputChange('price_per_box', e.target.value)}
                         required
+                        className="focus:ring-2 focus:ring-orange-500"
                       />
                     </div>
                   </CardContent>
                 </Card>
 
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Stock Management</CardTitle>
+                <Card className="hover:shadow-md transition-shadow duration-200">
+                  <CardHeader className="border-b bg-gray-50">
+                    <CardTitle className="flex items-center gap-2">
+                      <Package className="h-5 w-5 text-blue-600" />
+                      Stock Management
+                    </CardTitle>
                     <CardDescription>
                       Set initial stock and reorder levels
                     </CardDescription>
                   </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div>
-                      <Label htmlFor="initialStock">Initial Stock (Boxes)</Label>
+                  <CardContent className="space-y-4 pt-6">
+                    <div className="space-y-2">
+                      <Label htmlFor="initialStock" className="text-sm font-medium">Initial Stock (Boxes)</Label>
                       <Input
                         id="initialStock"
                         type="number"
@@ -436,10 +482,13 @@ export default function AddProductPage() {
                         min="0"
                         value={formData.current_stock}
                         onChange={(e) => handleInputChange('current_stock', e.target.value)}
+                        className="focus:ring-2 focus:ring-orange-500"
                       />
                     </div>
-                    <div>
-                      <Label htmlFor="minStock">Minimum Stock Level *</Label>
+                    <div className="space-y-2">
+                      <Label htmlFor="minStock" className="text-sm font-medium">
+                        Minimum Stock Level <span className="text-red-500">*</span>
+                      </Label>
                       <Input
                         id="minStock"
                         type="number"
@@ -448,10 +497,11 @@ export default function AddProductPage() {
                         value={formData.min_stock}
                         onChange={(e) => handleInputChange('min_stock', e.target.value)}
                         required
+                        className="focus:ring-2 focus:ring-orange-500"
                       />
                     </div>
-                    <div>
-                      <Label htmlFor="maxStock">Maximum Stock Level</Label>
+                    <div className="space-y-2">
+                      <Label htmlFor="maxStock" className="text-sm font-medium">Maximum Stock Level</Label>
                       <Input
                         id="maxStock"
                         type="number"
@@ -459,22 +509,29 @@ export default function AddProductPage() {
                         min="0"
                         value={formData.max_stock}
                         onChange={(e) => handleInputChange('max_stock', e.target.value)}
+                        className="focus:ring-2 focus:ring-orange-500"
                       />
                     </div>
                   </CardContent>
                 </Card>
 
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Product Images</CardTitle>
+                <Card className="hover:shadow-md transition-shadow duration-200">
+                  <CardHeader className="border-b bg-gray-50">
+                    <CardTitle className="flex items-center gap-2">
+                      <Image className="h-5 w-5 text-pink-600" />
+                      Product Images
+                    </CardTitle>
+                    <CardDescription>
+                      Upload product images for better presentation
+                    </CardDescription>
                   </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                  <CardContent className="space-y-4 pt-6">
+                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-orange-400 transition-colors">
                       <Image className="h-12 w-12 mx-auto text-gray-400 mb-4" />
                       <p className="text-sm text-gray-600 mb-2">
                         Upload product images
                       </p>
-                      <Button variant="outline" size="sm" type="button">
+                      <Button variant="outline" size="sm" type="button" className="hover:bg-orange-50">
                         Choose Files
                       </Button>
                     </div>
@@ -484,7 +541,7 @@ export default function AddProductPage() {
                 <div className="space-y-3">
                   <Button 
                     type="submit" 
-                    className="w-full bg-orange-600 hover:bg-orange-700"
+                    className="w-full bg-orange-600 hover:bg-orange-700 focus:ring-2 focus:ring-orange-500"
                     disabled={loading}
                   >
                     {loading ? (
@@ -499,7 +556,7 @@ export default function AddProductPage() {
                       </>
                     )}
                   </Button>
-                  <Button variant="outline" className="w-full" type="button">
+                  <Button variant="outline" className="w-full hover:bg-gray-50" type="button">
                     Save & Add Another
                   </Button>
                 </div>

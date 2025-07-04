@@ -11,9 +11,11 @@ import {
   Trash2,
   Calculator,
   Loader2,
+  Download,
+  Upload,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { getProducts, deleteProduct, searchProducts, getLowStockProducts } from "../../actions/inventory";
 import { ProductWithRelations } from "@/types/database";
 import {
@@ -44,8 +46,17 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import Link from "next/link";
 import { useToast } from "@/components/ui/use-toast";
+import Breadcrumb from "@/components/breadcrumb";
+import { exportToCSV, exportToJSON } from "@/lib/utils";
 
 export default function InventoryPage() {
   const router = useRouter();
@@ -62,13 +73,88 @@ export default function InventoryPage() {
     totalValue: 0,
     categories: 0
   });
+  
+  // Performance optimizations
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(50);
+  const [sortBy, setSortBy] = useState('name');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+  const [categoryFilter, setCategoryFilter] = useState('all');
+  const [stockFilter, setStockFilter] = useState('all');
 
-  // Load products
-  useEffect(() => {
-    loadProducts();
-  }, []);
+  // Memoized filtered and sorted products
+  const processedProducts = useMemo(() => {
+    let filtered = filteredProducts;
 
-  const loadProducts = async () => {
+    // Apply category filter
+    if (categoryFilter && categoryFilter !== 'all') {
+      filtered = filtered.filter(product => 
+        product.category?.name === categoryFilter
+      );
+    }
+
+    // Apply stock filter
+    if (stockFilter && stockFilter !== 'all') {
+      switch (stockFilter) {
+        case 'low':
+          filtered = filtered.filter(product => 
+            (product.current_stock || 0) <= (product.min_stock || 0)
+          );
+          break;
+        case 'out':
+          filtered = filtered.filter(product => 
+            (product.current_stock || 0) === 0
+          );
+          break;
+        case 'in':
+          filtered = filtered.filter(product => 
+            (product.current_stock || 0) > (product.min_stock || 0)
+          );
+          break;
+      }
+    }
+
+    // Apply sorting
+    filtered.sort((a, b) => {
+      let aValue: any = a[sortBy as keyof ProductWithRelations];
+      let bValue: any = b[sortBy as keyof ProductWithRelations];
+      
+      if (sortBy === 'category') {
+        aValue = a.category?.name || '';
+        bValue = b.category?.name || '';
+      }
+      
+      if (typeof aValue === 'string') {
+        aValue = aValue.toLowerCase();
+        bValue = bValue.toLowerCase();
+      }
+      
+      if (sortOrder === 'asc') {
+        return aValue > bValue ? 1 : -1;
+      } else {
+        return aValue < bValue ? 1 : -1;
+      }
+    });
+
+    return filtered;
+  }, [filteredProducts, categoryFilter, stockFilter, sortBy, sortOrder]);
+
+  // Paginated products
+  const paginatedProducts = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return processedProducts.slice(startIndex, startIndex + itemsPerPage);
+  }, [processedProducts, currentPage, itemsPerPage]);
+
+  // Get unique categories for filter
+  const categories = useMemo(() => {
+    const uniqueCategories = new Set(
+      products.map(p => p.category?.name).filter((name): name is string => Boolean(name))
+    );
+    return Array.from(uniqueCategories).sort();
+  }, [products]);
+
+  // Load products with error handling and retry logic
+  const loadProducts = useCallback(async (retryCount = 0) => {
     setLoading(true);
     try {
       const result = await getProducts();
@@ -76,12 +162,18 @@ export default function InventoryPage() {
         setProducts(result.data || []);
         setFilteredProducts(result.data || []);
         calculateStats(result.data || []);
+        setCurrentPage(1); // Reset to first page when data changes
       } else {
         toast({
           title: "Error",
           description: result.error || "Failed to load products",
           variant: "destructive",
         });
+        
+        // Retry logic
+        if (retryCount < 3) {
+          setTimeout(() => loadProducts(retryCount + 1), 1000 * (retryCount + 1));
+        }
       }
     } catch (error) {
       toast({
@@ -89,10 +181,19 @@ export default function InventoryPage() {
         description: "Failed to load products",
         variant: "destructive",
       });
+      
+      if (retryCount < 3) {
+        setTimeout(() => loadProducts(retryCount + 1), 1000 * (retryCount + 1));
+      }
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast]);
+
+  // Load products on mount
+  useEffect(() => {
+    loadProducts();
+  }, [loadProducts]);
 
   const calculateStats = (products: ProductWithRelations[]) => {
     const lowStockCount = products.filter(product => 
@@ -113,23 +214,8 @@ export default function InventoryPage() {
     });
   };
 
-  // Search functionality
-  useEffect(() => {
-    if (!searchQuery.trim()) {
-      setFilteredProducts(products);
-      return;
-    }
-
-    const filtered = products.filter(product => 
-      product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      product.sku.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      product.category?.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      product.brand?.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-    setFilteredProducts(filtered);
-  }, [searchQuery, products]);
-
-  const handleSearch = async () => {
+  // Debounced search functionality
+  const handleSearch = useCallback(async () => {
     if (!searchQuery.trim()) {
       await loadProducts();
       return;
@@ -140,6 +226,7 @@ export default function InventoryPage() {
       const result = await searchProducts(searchQuery);
       if (result.success) {
         setFilteredProducts(result.data || []);
+        setCurrentPage(1);
       } else {
         toast({
           title: "Error",
@@ -156,7 +243,18 @@ export default function InventoryPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [searchQuery, loadProducts, toast]);
+
+  // Debounced search effect
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (searchQuery.trim()) {
+        handleSearch();
+      }
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
+  }, [searchQuery, handleSearch]);
 
   const handleDelete = async () => {
     if (!productToDelete) return;
@@ -213,11 +311,76 @@ export default function InventoryPage() {
     return "N/A";
   };
 
+  const handleSort = (column: string) => {
+    if (sortBy === column) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortBy(column);
+      setSortOrder('asc');
+    }
+  };
+
+  const clearFilters = () => {
+    setCategoryFilter('all');
+    setStockFilter('all');
+    setSearchQuery('');
+    setSortBy('name');
+    setSortOrder('asc');
+    setCurrentPage(1);
+  };
+
+  const handleExport = (format: 'csv' | 'json') => {
+    try {
+      const exportData = processedProducts.map(product => ({
+        id: product.id,
+        name: product.name,
+        sku: product.sku,
+        category: product.category?.name || 'N/A',
+        brand: product.brand || 'N/A',
+        length: product.length || 'N/A',
+        width: product.width || 'N/A',
+        thickness: product.thickness || 'N/A',
+        tiles_per_box: product.tiles_per_box,
+        area_per_box: product.area_per_box,
+        weight_per_box: product.weight_per_box || 'N/A',
+        price_per_box: product.price_per_box,
+        current_stock: product.current_stock || 0,
+        min_stock: product.min_stock || 0,
+        max_stock: product.max_stock || 0,
+        supplier: product.supplier?.name || 'N/A',
+        created_at: new Date(product.created_at).toLocaleDateString(),
+        updated_at: new Date(product.updated_at).toLocaleDateString()
+      }));
+
+      const filename = `inventory_${new Date().toISOString().split('T')[0]}`;
+      
+      if (format === 'csv') {
+        exportToCSV(exportData, filename);
+      } else {
+        exportToJSON(exportData, filename);
+      }
+
+      toast({
+        title: "Export Successful",
+        description: `Inventory data exported as ${format.toUpperCase()}`,
+      });
+    } catch (error) {
+      toast({
+        title: "Export Failed",
+        description: "Failed to export inventory data",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <>
       <DashboardNavbar />
       <main className="w-full bg-gray-50 min-h-screen">
         <div className="container mx-auto px-4 py-8">
+          {/* Breadcrumb */}
+          <Breadcrumb items={[{ label: "Inventory Management" }]} />
+          
           {/* Header */}
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
             <div>
@@ -229,9 +392,23 @@ export default function InventoryPage() {
               </p>
             </div>
             <div className="flex gap-3 mt-4 md:mt-0">
-              <Button variant="outline">
-                <Filter className="w-4 h-4 mr-2" />
-                Filter
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => handleExport('csv')}
+                disabled={processedProducts.length === 0}
+              >
+                <Download className="w-4 h-4 mr-2" />
+                Export CSV
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => handleExport('json')}
+                disabled={processedProducts.length === 0}
+              >
+                <Download className="w-4 h-4 mr-2" />
+                Export JSON
               </Button>
               <Link href="/dashboard/inventory/add">
                 <Button className="bg-orange-600 hover:bg-orange-700">
@@ -299,27 +476,46 @@ export default function InventoryPage() {
             </Card>
           </div>
 
-          {/* Search and Filters */}
+          {/* Advanced Search and Filters */}
           <Card className="mb-6">
             <CardContent className="pt-6">
-              <div className="flex flex-col md:flex-row gap-4">
-                <div className="relative flex-1">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                   <Input
-                    placeholder="Search products by name, SKU, or category..."
+                    placeholder="Search products..."
                     className="pl-10"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
                   />
                 </div>
-                <Button variant="outline" onClick={handleSearch}>
-                  <Search className="w-4 h-4 mr-2" />
-                  Search
-                </Button>
-                <Button variant="outline" onClick={() => { setSearchQuery(''); loadProducts(); }}>
+                <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Filter by category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Categories</SelectItem>
+                    {categories.map((category) => (
+                      <SelectItem key={category} value={category}>
+                        {category}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Select value={stockFilter} onValueChange={setStockFilter}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Filter by stock" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Stock</SelectItem>
+                    <SelectItem value="low">Low Stock</SelectItem>
+                    <SelectItem value="out">Out of Stock</SelectItem>
+                    <SelectItem value="in">In Stock</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Button variant="outline" onClick={clearFilters}>
                   <Filter className="w-4 h-4 mr-2" />
-                  Clear
+                  Clear Filters
                 </Button>
               </div>
             </CardContent>
@@ -335,99 +531,189 @@ export default function InventoryPage() {
             </CardHeader>
             <CardContent>
               {loading ? (
-                <div className="flex items-center justify-center py-8">
-                  <Loader2 className="h-8 w-8 animate-spin" />
-                  <span className="ml-2">Loading products...</span>
+                <div className="flex flex-col items-center justify-center py-12">
+                  <div className="relative">
+                    <Loader2 className="h-12 w-12 animate-spin text-orange-500" />
+                    <div className="absolute inset-0 rounded-full border-4 border-orange-200 animate-pulse"></div>
+                  </div>
+                  <div className="mt-4 text-center">
+                    <p className="text-lg font-medium text-gray-900">Loading Inventory</p>
+                    <p className="text-sm text-gray-500 mt-1">Fetching your product data...</p>
+                  </div>
                 </div>
-              ) : filteredProducts.length === 0 ? (
-                <div className="text-center py-8">
-                  <Package className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-                  <p className="text-gray-600">
-                    {searchQuery ? 'No products found matching your search.' : 'No products in inventory yet.'}
+              ) : processedProducts.length === 0 ? (
+                <div className="text-center py-12">
+                  <div className="relative">
+                    <Package className="h-16 w-16 mx-auto text-gray-300 mb-4" />
+                    <div className="absolute inset-0 bg-gradient-to-r from-orange-100 to-orange-200 rounded-full opacity-20 animate-pulse"></div>
+                  </div>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">
+                    {searchQuery || (categoryFilter !== 'all') || (stockFilter !== 'all') ? 'No Products Found' : 'No Products Yet'}
+                  </h3>
+                  <p className="text-gray-600 mb-6 max-w-md mx-auto">
+                    {searchQuery || (categoryFilter !== 'all') || (stockFilter !== 'all')
+                      ? 'No products match your current filters. Try adjusting your search criteria.'
+                      : 'Get started by adding your first tile product to your inventory.'
+                    }
                   </p>
-                  {!searchQuery && (
+                  {!searchQuery && categoryFilter === 'all' && stockFilter === 'all' ? (
                     <Link href="/dashboard/inventory/add">
-                      <Button className="mt-4 bg-orange-600 hover:bg-orange-700">
+                      <Button className="bg-orange-600 hover:bg-orange-700 focus:ring-2 focus:ring-orange-500">
                         <Plus className="w-4 h-4 mr-2" />
                         Add Your First Product
                       </Button>
                     </Link>
+                  ) : (
+                    <Button 
+                      variant="outline" 
+                      onClick={clearFilters}
+                      className="hover:bg-gray-50"
+                    >
+                      <Filter className="w-4 h-4 mr-2" />
+                      Clear All Filters
+                    </Button>
                   )}
                 </div>
               ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Product Details</TableHead>
-                      <TableHead>Category</TableHead>
-                      <TableHead>Size</TableHead>
-                      <TableHead>Stock Level</TableHead>
-                      <TableHead>Price/Box</TableHead>
-                      <TableHead>Area/Box</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredProducts.map((product) => {
-                      const stockStatus = getStockStatus(product);
-                      return (
-                        <TableRow key={product.id}>
-                          <TableCell>
-                            <div>
-                              <div className="font-medium">{product.name}</div>
-                              <div className="text-sm text-gray-500">
-                                SKU: {product.sku}
-                              </div>
-                              <div className="text-sm text-gray-500">
-                                Supplier: {product.supplier?.name || 'N/A'}
-                              </div>
-                            </div>
-                          </TableCell>
-                          <TableCell>{product.category?.name || 'N/A'}</TableCell>
-                          <TableCell>{formatSize(product)}</TableCell>
-                          <TableCell>
-                            <div>
-                              <div className="font-medium">
-                                {product.current_stock || 0} boxes
-                              </div>
-                              <div className="text-sm text-gray-500">
-                                Min: {product.min_stock || 0} | Max: {product.max_stock || 100}
-                              </div>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            ₹{(product.price_per_box || 0).toLocaleString()}
-                          </TableCell>
-                          <TableCell>{(product.area_per_box || 0).toFixed(2)} m²</TableCell>
-                          <TableCell>
-                            <Badge variant={stockStatus.variant}>
-                              {stockStatus.status}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex gap-2">
-                              <Button 
-                                variant="ghost" 
-                                size="sm"
-                                onClick={() => router.push(`/dashboard/inventory/edit/${product.id}`)}
-                              >
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                              <Button 
-                                variant="ghost" 
-                                size="sm"
-                                onClick={() => openDeleteDialog(product)}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </TableCell>
+                <>
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow className="bg-gray-50 hover:bg-gray-50">
+                          <TableHead 
+                            className="font-semibold text-gray-900 cursor-pointer hover:bg-gray-100"
+                            onClick={() => handleSort('name')}
+                          >
+                            Product Details {sortBy === 'name' && (sortOrder === 'asc' ? '↑' : '↓')}
+                          </TableHead>
+                          <TableHead 
+                            className="font-semibold text-gray-900 cursor-pointer hover:bg-gray-100"
+                            onClick={() => handleSort('category')}
+                          >
+                            Category {sortBy === 'category' && (sortOrder === 'asc' ? '↑' : '↓')}
+                          </TableHead>
+                          <TableHead className="font-semibold text-gray-900">Size</TableHead>
+                          <TableHead 
+                            className="font-semibold text-gray-900 cursor-pointer hover:bg-gray-100"
+                            onClick={() => handleSort('current_stock')}
+                          >
+                            Stock Level {sortBy === 'current_stock' && (sortOrder === 'asc' ? '↑' : '↓')}
+                          </TableHead>
+                          <TableHead 
+                            className="font-semibold text-gray-900 cursor-pointer hover:bg-gray-100"
+                            onClick={() => handleSort('price_per_box')}
+                          >
+                            Price/Box {sortBy === 'price_per_box' && (sortOrder === 'asc' ? '↑' : '↓')}
+                          </TableHead>
+                          <TableHead className="font-semibold text-gray-900">Area/Box</TableHead>
+                          <TableHead className="font-semibold text-gray-900">Status</TableHead>
+                          <TableHead className="font-semibold text-gray-900">Actions</TableHead>
                         </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
+                      </TableHeader>
+                      <TableBody>
+                        {paginatedProducts.map((product, index) => {
+                          const stockStatus = getStockStatus(product);
+                          return (
+                            <TableRow 
+                              key={product.id} 
+                              className={`hover:bg-gray-50 transition-colors duration-150 ${
+                                index % 2 === 0 ? 'bg-white' : 'bg-gray-25'
+                              }`}
+                            >
+                              <TableCell className="py-4">
+                                <div>
+                                  <div className="font-medium text-gray-900">{product.name}</div>
+                                  <div className="text-sm text-gray-500">
+                                    SKU: {product.sku}
+                                  </div>
+                                  <div className="text-sm text-gray-500">
+                                    Supplier: {product.supplier?.name || 'N/A'}
+                                  </div>
+                                </div>
+                              </TableCell>
+                              <TableCell className="py-4">
+                                <span className="text-gray-700">{product.category?.name || 'N/A'}</span>
+                              </TableCell>
+                              <TableCell className="py-4">
+                                <span className="text-gray-700">{formatSize(product)}</span>
+                              </TableCell>
+                              <TableCell className="py-4">
+                                <div>
+                                  <div className="font-medium text-gray-900">
+                                    {product.current_stock || 0} boxes
+                                  </div>
+                                  <div className="text-sm text-gray-500">
+                                    Min: {product.min_stock || 0} | Max: {product.max_stock || 100}
+                                  </div>
+                                </div>
+                              </TableCell>
+                              <TableCell className="py-4">
+                                <span className="font-medium text-gray-900">
+                                  ₹{(product.price_per_box || 0).toLocaleString()}
+                                </span>
+                              </TableCell>
+                              <TableCell className="py-4">
+                                <span className="text-gray-700">{(product.area_per_box || 0).toFixed(2)} m²</span>
+                              </TableCell>
+                              <TableCell className="py-4">
+                                <Badge variant={stockStatus.variant} className="font-medium">
+                                  {stockStatus.status}
+                                </Badge>
+                              </TableCell>
+                              <TableCell className="py-4">
+                                <div className="flex gap-1">
+                                  <Button 
+                                    variant="ghost" 
+                                    size="sm"
+                                    className="h-8 w-8 p-0 hover:bg-gray-100"
+                                    onClick={() => router.push(`/dashboard/inventory/edit/${product.id}`)}
+                                  >
+                                    <Edit className="h-4 w-4" />
+                                  </Button>
+                                  <Button 
+                                    variant="ghost" 
+                                    size="sm"
+                                    className="h-8 w-8 p-0 hover:bg-red-50 hover:text-red-600"
+                                    onClick={() => openDeleteDialog(product)}
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
+                      </TableBody>
+                    </Table>
+                  </div>
+                  
+                  {/* Pagination */}
+                  {processedProducts.length > itemsPerPage && (
+                    <div className="flex items-center justify-between mt-6">
+                      <div className="text-sm text-gray-500">
+                        Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, processedProducts.length)} of {processedProducts.length} products
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                          disabled={currentPage === 1}
+                        >
+                          Previous
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setCurrentPage(currentPage + 1)}
+                          disabled={currentPage * itemsPerPage >= processedProducts.length}
+                        >
+                          Next
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </>
               )}
             </CardContent>
           </Card>

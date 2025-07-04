@@ -49,6 +49,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import Link from "next/link";
 import { useToast } from "@/components/ui/use-toast";
+import Breadcrumb from "@/components/breadcrumb";
 
 export default function CustomersPage() {
   const router = useRouter();
@@ -209,6 +210,9 @@ export default function CustomersPage() {
       <DashboardNavbar />
       <main className="w-full bg-gray-50 min-h-screen">
         <div className="container mx-auto px-4 py-8">
+          {/* Breadcrumb */}
+          <Breadcrumb items={[{ label: "Customer Management" }]} />
+          
           {/* Header */}
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
             <div>
@@ -326,73 +330,103 @@ export default function CustomersPage() {
             </CardHeader>
             <CardContent>
               {loading ? (
-                <div className="flex items-center justify-center py-8">
-                  <Loader2 className="h-8 w-8 animate-spin" />
-                  <span className="ml-2">Loading customers...</span>
+                <div className="flex flex-col items-center justify-center py-12">
+                  <div className="relative">
+                    <Loader2 className="h-12 w-12 animate-spin text-orange-500" />
+                    <div className="absolute inset-0 rounded-full border-4 border-orange-200 animate-pulse"></div>
+                  </div>
+                  <div className="mt-4 text-center">
+                    <p className="text-lg font-medium text-gray-900">Loading Customers</p>
+                    <p className="text-sm text-gray-500 mt-1">Fetching your customer data...</p>
+                  </div>
                 </div>
               ) : filteredCustomers.length === 0 ? (
-                <div className="text-center py-8">
-                  <Users className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-                  <p className="text-gray-600">
-                    {searchQuery ? 'No customers found matching your search.' : 'No customers added yet.'}
+                <div className="text-center py-12">
+                  <div className="relative">
+                    <Users className="h-16 w-16 mx-auto text-gray-300 mb-4" />
+                    <div className="absolute inset-0 bg-gradient-to-r from-orange-100 to-orange-200 rounded-full opacity-20 animate-pulse"></div>
+                  </div>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">
+                    {searchQuery ? 'No Customers Found' : 'No Customers Yet'}
+                  </h3>
+                  <p className="text-gray-600 mb-6 max-w-md mx-auto">
+                    {searchQuery 
+                      ? `No customers found matching "${searchQuery}". Try adjusting your search terms.`
+                      : 'Start building your customer base by adding your first customer.'
+                    }
                   </p>
-                  {!searchQuery && (
+                  {!searchQuery ? (
                     <Link href="/dashboard/customers/add">
-                      <Button className="mt-4 bg-orange-600 hover:bg-orange-700">
+                      <Button className="bg-orange-600 hover:bg-orange-700 focus:ring-2 focus:ring-orange-500">
                         <Plus className="w-4 h-4 mr-2" />
                         Add Your First Customer
                       </Button>
                     </Link>
+                  ) : (
+                    <Button 
+                      variant="outline" 
+                      onClick={() => { setSearchQuery(''); loadCustomers(); }}
+                      className="hover:bg-gray-50"
+                    >
+                      <Filter className="w-4 h-4 mr-2" />
+                      Clear Search
+                    </Button>
                   )}
                 </div>
               ) : (
-                <Table>
-                  <TableHeader>
-                                      <TableRow>
-                    <TableHead>Customer Details</TableHead>
-                    <TableHead>Contact Information</TableHead>
-                    <TableHead>GST Number</TableHead>
-                    <TableHead>Credit Info</TableHead>
-                    <TableHead>Outstanding</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredCustomers.map((customer) => {
-                      const statusBadge = getStatusBadge(customer.status);
-                      return (
-                        <TableRow key={customer.id}>
-                          <TableCell>
-                            <div>
-                              <div className="font-medium">{customer.name}</div>
-                              <div className="text-sm text-gray-500">
-                                {customer.contact_person || 'N/A'}
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-gray-50 hover:bg-gray-50">
+                        <TableHead className="font-semibold text-gray-900">Customer Details</TableHead>
+                        <TableHead className="font-semibold text-gray-900">Contact Information</TableHead>
+                        <TableHead className="font-semibold text-gray-900">GST Number</TableHead>
+                        <TableHead className="font-semibold text-gray-900">Credit Info</TableHead>
+                        <TableHead className="font-semibold text-gray-900">Outstanding</TableHead>
+                        <TableHead className="font-semibold text-gray-900">Status</TableHead>
+                        <TableHead className="font-semibold text-gray-900">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredCustomers.map((customer, index) => {
+                        const statusBadge = getStatusBadge(customer.status);
+                        return (
+                          <TableRow 
+                            key={customer.id}
+                            className={`hover:bg-gray-50 transition-colors duration-150 ${
+                              index % 2 === 0 ? 'bg-white' : 'bg-gray-25'
+                            }`}
+                          >
+                            <TableCell className="py-4">
+                              <div>
+                                <div className="font-medium text-gray-900">{customer.name}</div>
+                                <div className="text-sm text-gray-500">
+                                  {customer.contact_person || 'N/A'}
+                                </div>
+                                <div className="text-sm text-gray-500 flex items-center gap-1 mt-1">
+                                  <MapPin className="h-3 w-3" />
+                                  {formatAddress(customer.address)}
+                                </div>
                               </div>
-                              <div className="text-sm text-gray-500 flex items-center gap-1 mt-1">
-                                <MapPin className="h-3 w-3" />
-                                {formatAddress(customer.address)}
+                            </TableCell>
+                            <TableCell className="py-4">
+                              <div className="space-y-1">
+                                <div className="flex items-center gap-1 text-sm">
+                                  <Phone className="h-3 w-3" />
+                                  <span className="text-gray-700">{customer.phone || 'N/A'}</span>
+                                </div>
+                                <div className="flex items-center gap-1 text-sm">
+                                  <Mail className="h-3 w-3" />
+                                  <span className="text-gray-700">{customer.email || 'N/A'}</span>
+                                </div>
                               </div>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <div className="space-y-1">
-                              <div className="flex items-center gap-1 text-sm">
-                                <Phone className="h-3 w-3" />
-                                {customer.phone || 'N/A'}
+                            </TableCell>
+                            <TableCell className="py-4">
+                              <div className="text-sm font-mono text-gray-700">
+                                {customer.gst_number || 'N/A'}
                               </div>
-                              <div className="flex items-center gap-1 text-sm">
-                                <Mail className="h-3 w-3" />
-                                {customer.email || 'N/A'}
-                              </div>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <div className="text-sm font-mono">
-                              {customer.gst_number || 'N/A'}
-                            </div>
-                          </TableCell>
-                                                      <TableCell>
+                            </TableCell>
+                            <TableCell className="py-4">
                               <div>
                                 <div className="text-sm text-gray-500">
                                   Credit limit: ₹{(customer.credit_limit || 0).toLocaleString()}
@@ -402,7 +436,7 @@ export default function CustomersPage() {
                                 </div>
                               </div>
                             </TableCell>
-                            <TableCell>
+                            <TableCell className="py-4">
                               <div className="text-sm text-gray-500">
                                 ₹0 {/* Will be calculated from invoices later */}
                               </div>
@@ -410,41 +444,45 @@ export default function CustomersPage() {
                                 Terms: {customer.payment_terms || 'N/A'}
                               </div>
                             </TableCell>
-                          <TableCell>
-                            <Badge variant={statusBadge.variant} className={statusBadge.className}>
-                              {customer.status || 'Active'}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex gap-2">
-                              <Button 
-                                variant="ghost" 
-                                size="sm"
-                                onClick={() => router.push(`/dashboard/customers/view/${customer.id}`)}
-                              >
-                                <Eye className="h-4 w-4" />
-                              </Button>
-                              <Button 
-                                variant="ghost" 
-                                size="sm"
-                                onClick={() => router.push(`/dashboard/customers/edit/${customer.id}`)}
-                              >
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                              <Button 
-                                variant="ghost" 
-                                size="sm"
-                                onClick={() => openDeleteDialog(customer)}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
+                            <TableCell className="py-4">
+                              <Badge variant={statusBadge.variant} className={statusBadge.className}>
+                                {customer.status || 'Active'}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="py-4">
+                              <div className="flex gap-1">
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm"
+                                  className="h-8 w-8 p-0 hover:bg-gray-100"
+                                  onClick={() => router.push(`/dashboard/customers/view/${customer.id}`)}
+                                >
+                                  <Eye className="h-4 w-4" />
+                                </Button>
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm"
+                                  className="h-8 w-8 p-0 hover:bg-gray-100"
+                                  onClick={() => router.push(`/dashboard/customers/edit/${customer.id}`)}
+                                >
+                                  <Edit className="h-4 w-4" />
+                                </Button>
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm"
+                                  className="h-8 w-8 p-0 hover:bg-red-50 hover:text-red-600"
+                                  onClick={() => openDeleteDialog(customer)}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </div>
               )}
             </CardContent>
           </Card>

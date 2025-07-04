@@ -31,6 +31,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import Link from "next/link";
+import Breadcrumb from "@/components/breadcrumb";
 
 export default async function DeliveriesPage() {
   const supabase = await createClient();
@@ -136,8 +137,11 @@ export default async function DeliveriesPage() {
   return (
     <>
       <DashboardNavbar />
-      <main className="w-full bg-gray-50 min-h-screen">
+      <main className="w-full bg-gray-50 min-h-screen pb-24">
         <div className="container mx-auto px-4 py-8">
+          {/* Breadcrumb */}
+          <Breadcrumb items={[{ label: "Delivery Management" }]} />
+          
           {/* Header */}
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
             <div>
