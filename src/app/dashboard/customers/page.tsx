@@ -1,3 +1,5 @@
+'use client'
+
 import DashboardNavbar from "@/components/dashboard-navbar";
 import {
   Users,
@@ -10,9 +12,13 @@ import {
   Mail,
   MapPin,
   IndianRupee,
+  Loader2,
+  Trash2,
 } from "lucide-react";
-import { redirect } from "next/navigation";
-import { createClient } from "../../../../supabase/server";
+import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { getCustomers, deleteCustomer, searchCustomers } from "../../actions/customers";
+import { Customer } from "@/types/database";
 import {
   Card,
   CardContent,
@@ -31,90 +37,172 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import Link from "next/link";
+import { useToast } from "@/components/ui/use-toast";
 
-export default async function CustomersPage() {
-  const supabase = await createClient();
+export default function CustomersPage() {
+  const router = useRouter();
+  const { toast } = useToast();
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [filteredCustomers, setFilteredCustomers] = useState<Customer[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [customerToDelete, setCustomerToDelete] = useState<Customer | null>(null);
+  const [stats, setStats] = useState({
+    totalCustomers: 0,
+    activeCustomers: 0,
+    totalOutstanding: 0,
+    totalRevenue: 0
+  });
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // Load customers
+  useEffect(() => {
+    loadCustomers();
+  }, []);
 
-  if (!user) {
-    return redirect("/sign-in");
-  }
+  const loadCustomers = async () => {
+    setLoading(true);
+    try {
+      const result = await getCustomers();
+      if (result.success) {
+        setCustomers(result.data || []);
+        setFilteredCustomers(result.data || []);
+        calculateStats(result.data || []);
+      } else {
+        toast({
+          title: "Error",
+          description: result.error || "Failed to load customers",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to load customers",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  // Mock customer data
-  const customers = [
-    {
-      id: 1,
-      name: "Sharma Construction",
-      contactPerson: "Rajesh Sharma",
-      phone: "+91 98765 43210",
-      email: "rajesh@sharmaconstruction.com",
-      address: "123 MG Road, Mumbai, Maharashtra 400001",
-      gstNumber: "27AABCS1234C1Z5",
-      totalPurchases: 245000,
-      outstandingAmount: 15000,
-      lastOrderDate: "2024-01-15",
-      status: "Active",
-      creditLimit: 50000,
-      paymentTerms: "30 days",
-    },
-    {
-      id: 2,
-      name: "Modern Interiors",
-      contactPerson: "Priya Patel",
-      phone: "+91 87654 32109",
-      email: "priya@moderninteriors.com",
-      address: "456 Park Street, Delhi, Delhi 110001",
-      gstNumber: "07DEFGH5678D2Z6",
-      totalPurchases: 180000,
-      outstandingAmount: 28320,
-      lastOrderDate: "2024-01-16",
-      status: "Active",
-      creditLimit: 75000,
-      paymentTerms: "15 days",
-    },
-    {
-      id: 3,
-      name: "Elite Builders",
-      contactPerson: "Amit Kumar",
-      phone: "+91 76543 21098",
-      email: "amit@elitebuilders.com",
-      address: "789 Commercial Complex, Bangalore, Karnataka 560001",
-      gstNumber: "29IJKLM9012E3Z7",
-      totalPurchases: 320000,
-      outstandingAmount: 22656,
-      lastOrderDate: "2024-01-17",
-      status: "Overdue",
-      creditLimit: 100000,
-      paymentTerms: "45 days",
-    },
-    {
-      id: 4,
-      name: "Home Decor Solutions",
-      contactPerson: "Sunita Reddy",
-      phone: "+91 65432 10987",
-      email: "sunita@homedecor.com",
-      address: "321 Residency Road, Hyderabad, Telangana 500001",
-      gstNumber: "36NOPQR3456F4Z8",
-      totalPurchases: 95000,
-      outstandingAmount: 0,
-      lastOrderDate: "2024-01-10",
-      status: "Active",
-      creditLimit: 30000,
-      paymentTerms: "20 days",
-    },
-  ];
+  const calculateStats = (customers: Customer[]) => {
+    const activeCustomers = customers.filter(customer => customer.status === 'Active').length;
+    
+    setStats({
+      totalCustomers: customers.length,
+      activeCustomers,
+      totalOutstanding: 0, // Will be calculated from invoices later
+      totalRevenue: 0 // Will be calculated from invoices later
+    });
+  };
 
-  const totalCustomers = customers.length;
-  const activeCustomers = customers.filter((c) => c.status === "Active").length;
-  const totalOutstanding = customers.reduce(
-    (sum, c) => sum + c.outstandingAmount,
-    0,
-  );
-  const totalRevenue = customers.reduce((sum, c) => sum + c.totalPurchases, 0);
+  // Search functionality
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setFilteredCustomers(customers);
+      return;
+    }
+
+    const filtered = customers.filter(customer => 
+      customer.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      customer.contact_person?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      customer.phone?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      customer.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      customer.gst_number?.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+    setFilteredCustomers(filtered);
+  }, [searchQuery, customers]);
+
+  const handleSearch = async () => {
+    if (!searchQuery.trim()) {
+      await loadCustomers();
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const result = await searchCustomers(searchQuery);
+      if (result.success) {
+        setFilteredCustomers(result.data || []);
+      } else {
+        toast({
+          title: "Error",
+          description: result.error || "Failed to search customers",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to search customers",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!customerToDelete) return;
+
+    try {
+      const result = await deleteCustomer(customerToDelete.id);
+      if (result.success) {
+        toast({
+          title: "Success!",
+          description: "Customer deleted successfully",
+        });
+        await loadCustomers(); // Reload the list
+      } else {
+        toast({
+          title: "Error",
+          description: result.error || "Failed to delete customer",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete customer",
+        variant: "destructive",
+      });
+    } finally {
+      setDeleteDialogOpen(false);
+      setCustomerToDelete(null);
+    }
+  };
+
+  const openDeleteDialog = (customer: Customer) => {
+    setCustomerToDelete(customer);
+    setDeleteDialogOpen(true);
+  };
+
+  const getStatusBadge = (status: string) => {
+    if (status === 'Active') {
+      return { variant: "default" as const, className: "bg-green-100 text-green-800" };
+    } else if (status === 'Overdue') {
+      return { variant: "destructive" as const, className: "bg-red-100 text-red-800" };
+    } else {
+      return { variant: "secondary" as const, className: "bg-gray-100 text-gray-800" };
+    }
+  };
+
+  const formatAddress = (address: string | null) => {
+    if (!address) return 'N/A';
+    return address.split(',')[0]; // Show only first part of address
+  };
 
   return (
     <>
@@ -155,7 +243,7 @@ export default async function CustomersPage() {
                 <Users className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{totalCustomers}</div>
+                <div className="text-2xl font-bold">{stats.totalCustomers}</div>
               </CardContent>
             </Card>
 
@@ -168,7 +256,7 @@ export default async function CustomersPage() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-green-600">
-                  {activeCustomers}
+                  {stats.activeCustomers}
                 </div>
               </CardContent>
             </Card>
@@ -182,7 +270,7 @@ export default async function CustomersPage() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-orange-600">
-                  ₹{totalOutstanding.toLocaleString()}
+                  ₹{stats.totalOutstanding.toLocaleString()}
                 </div>
               </CardContent>
             </Card>
@@ -196,7 +284,7 @@ export default async function CustomersPage() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-green-600">
-                  ₹{totalRevenue.toLocaleString()}
+                  ₹{stats.totalRevenue.toLocaleString()}
                 </div>
               </CardContent>
             </Card>
@@ -211,11 +299,18 @@ export default async function CustomersPage() {
                   <Input
                     placeholder="Search customers by name, phone, or GST number..."
                     className="pl-10"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
                   />
                 </div>
-                <Button variant="outline">
+                <Button variant="outline" onClick={handleSearch}>
+                  <Search className="w-4 h-4 mr-2" />
+                  Search
+                </Button>
+                <Button variant="outline" onClick={() => { setSearchQuery(''); loadCustomers(); }}>
                   <Filter className="w-4 h-4 mr-2" />
-                  Advanced Filters
+                  Clear
                 </Button>
               </div>
             </CardContent>
@@ -230,115 +325,149 @@ export default async function CustomersPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
+              {loading ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="h-8 w-8 animate-spin" />
+                  <span className="ml-2">Loading customers...</span>
+                </div>
+              ) : filteredCustomers.length === 0 ? (
+                <div className="text-center py-8">
+                  <Users className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                  <p className="text-gray-600">
+                    {searchQuery ? 'No customers found matching your search.' : 'No customers added yet.'}
+                  </p>
+                  {!searchQuery && (
+                    <Link href="/dashboard/customers/add">
+                      <Button className="mt-4 bg-orange-600 hover:bg-orange-700">
+                        <Plus className="w-4 h-4 mr-2" />
+                        Add Your First Customer
+                      </Button>
+                    </Link>
+                  )}
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                                      <TableRow>
                     <TableHead>Customer Details</TableHead>
                     <TableHead>Contact Information</TableHead>
                     <TableHead>GST Number</TableHead>
-                    <TableHead>Purchase History</TableHead>
+                    <TableHead>Credit Info</TableHead>
                     <TableHead>Outstanding</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Actions</TableHead>
                   </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {customers.map((customer) => (
-                    <TableRow key={customer.id}>
-                      <TableCell>
-                        <div>
-                          <div className="font-medium">{customer.name}</div>
-                          <div className="text-sm text-gray-500">
-                            {customer.contactPerson}
-                          </div>
-                          <div className="text-sm text-gray-500 flex items-center gap-1 mt-1">
-                            <MapPin className="h-3 w-3" />
-                            {customer.address.split(",")[0]}
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="space-y-1">
-                          <div className="flex items-center gap-1 text-sm">
-                            <Phone className="h-3 w-3" />
-                            {customer.phone}
-                          </div>
-                          <div className="flex items-center gap-1 text-sm">
-                            <Mail className="h-3 w-3" />
-                            {customer.email}
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="text-sm font-mono">
-                          {customer.gstNumber}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div>
-                          <div className="font-medium">
-                            ₹{customer.totalPurchases.toLocaleString()}
-                          </div>
-                          <div className="text-sm text-gray-500">
-                            Last order:{" "}
-                            {new Date(
-                              customer.lastOrderDate,
-                            ).toLocaleDateString()}
-                          </div>
-                          <div className="text-sm text-gray-500">
-                            Credit limit: ₹
-                            {customer.creditLimit.toLocaleString()}
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div
-                          className={`font-medium ${
-                            customer.outstandingAmount > 0
-                              ? "text-orange-600"
-                              : "text-green-600"
-                          }`}
-                        >
-                          ₹{customer.outstandingAmount.toLocaleString()}
-                        </div>
-                        <div className="text-sm text-gray-500">
-                          Terms: {customer.paymentTerms}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge
-                          variant={
-                            customer.status === "Active"
-                              ? "default"
-                              : "destructive"
-                          }
-                          className={
-                            customer.status === "Active"
-                              ? "bg-green-100 text-green-800"
-                              : "bg-red-100 text-red-800"
-                          }
-                        >
-                          {customer.status}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex gap-2">
-                          <Button variant="ghost" size="sm">
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                          <Button variant="ghost" size="sm">
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredCustomers.map((customer) => {
+                      const statusBadge = getStatusBadge(customer.status);
+                      return (
+                        <TableRow key={customer.id}>
+                          <TableCell>
+                            <div>
+                              <div className="font-medium">{customer.name}</div>
+                              <div className="text-sm text-gray-500">
+                                {customer.contact_person || 'N/A'}
+                              </div>
+                              <div className="text-sm text-gray-500 flex items-center gap-1 mt-1">
+                                <MapPin className="h-3 w-3" />
+                                {formatAddress(customer.address)}
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="space-y-1">
+                              <div className="flex items-center gap-1 text-sm">
+                                <Phone className="h-3 w-3" />
+                                {customer.phone || 'N/A'}
+                              </div>
+                              <div className="flex items-center gap-1 text-sm">
+                                <Mail className="h-3 w-3" />
+                                {customer.email || 'N/A'}
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="text-sm font-mono">
+                              {customer.gst_number || 'N/A'}
+                            </div>
+                          </TableCell>
+                                                      <TableCell>
+                              <div>
+                                <div className="text-sm text-gray-500">
+                                  Credit limit: ₹{(customer.credit_limit || 0).toLocaleString()}
+                                </div>
+                                <div className="text-sm text-gray-500">
+                                  Terms: {customer.payment_terms || 'N/A'}
+                                </div>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <div className="text-sm text-gray-500">
+                                ₹0 {/* Will be calculated from invoices later */}
+                              </div>
+                              <div className="text-sm text-gray-500">
+                                Terms: {customer.payment_terms || 'N/A'}
+                              </div>
+                            </TableCell>
+                          <TableCell>
+                            <Badge variant={statusBadge.variant} className={statusBadge.className}>
+                              {customer.status || 'Active'}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex gap-2">
+                              <Button 
+                                variant="ghost" 
+                                size="sm"
+                                onClick={() => router.push(`/dashboard/customers/view/${customer.id}`)}
+                              >
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                              <Button 
+                                variant="ghost" 
+                                size="sm"
+                                onClick={() => router.push(`/dashboard/customers/edit/${customer.id}`)}
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button 
+                                variant="ghost" 
+                                size="sm"
+                                onClick={() => openDeleteDialog(customer)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              )}
             </CardContent>
           </Card>
         </div>
       </main>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Customer</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete "{customerToDelete?.name}"? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }

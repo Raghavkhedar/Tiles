@@ -1,3 +1,5 @@
+'use client'
+
 import DashboardNavbar from "@/components/dashboard-navbar";
 import {
   Users,
@@ -7,9 +9,11 @@ import {
   Mail,
   MapPin,
   Building,
+  Loader2,
 } from "lucide-react";
-import { redirect } from "next/navigation";
-import { createClient } from "../../../../../supabase/server";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { createCustomer } from "../../../actions/customers";
 import {
   Card,
   CardContent,
@@ -29,17 +33,90 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import Link from "next/link";
+import { useToast } from "@/components/ui/use-toast";
 
-export default async function AddCustomerPage() {
-  const supabase = await createClient();
+export default function AddCustomerPage() {
+  const router = useRouter();
+  const { toast } = useToast();
+  const [saving, setSaving] = useState(false);
+  const [formData, setFormData] = useState({
+    name: '',
+    contact_person: '',
+    phone: '',
+    email: '',
+    address: '',
+    city: '',
+    state: '',
+    pincode: '',
+    gst_number: '',
+    credit_limit: '',
+    payment_terms: '',
+    status: 'Active'
+  });
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const handleInputChange = (field: string, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
 
-  if (!user) {
-    return redirect("/sign-in");
-  }
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+
+    try {
+      // Validate required fields
+      if (!formData.name || !formData.contact_person || !formData.phone) {
+        toast({
+          title: "Validation Error",
+          description: "Company name, contact person, and phone are required fields",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Prepare customer data
+      const customerData = {
+        name: formData.name,
+        contact_person: formData.contact_person,
+        phone: formData.phone,
+        email: formData.email || null,
+        address: formData.address || null,
+        city: formData.city || null,
+        state: formData.state || null,
+        pincode: formData.pincode || null,
+        gst_number: formData.gst_number || null,
+        credit_limit: formData.credit_limit ? parseFloat(formData.credit_limit) : 0,
+        payment_terms: formData.payment_terms || '30 days',
+        status: formData.status
+      };
+
+      const result = await createCustomer(customerData);
+      
+      if (result.success) {
+        toast({
+          title: "Success!",
+          description: "Customer created successfully",
+        });
+        router.push('/dashboard/customers');
+      } else {
+        toast({
+          title: "Error",
+          description: result.error || "Failed to create customer",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to create customer",
+        variant: "destructive",
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
     <>
@@ -64,268 +141,243 @@ export default async function AddCustomerPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Customer Form */}
-            <div className="lg:col-span-2 space-y-6">
-              {/* Basic Information */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Building className="h-5 w-5" />
-                    Basic Information
-                  </CardTitle>
-                  <CardDescription>
-                    Enter the customer's basic details
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <form onSubmit={handleSubmit}>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              {/* Customer Form */}
+              <div className="lg:col-span-2 space-y-6">
+                {/* Basic Information */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Building className="h-5 w-5" />
+                      Basic Information
+                    </CardTitle>
+                    <CardDescription>
+                      Enter the customer's basic details
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="name">
+                          Company/Business Name *
+                        </Label>
+                        <Input
+                          id="name"
+                          value={formData.name}
+                          onChange={(e) => handleInputChange('name', e.target.value)}
+                          placeholder="Sharma Construction"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="contact_person">Contact Person *</Label>
+                        <Input
+                          id="contact_person"
+                          value={formData.contact_person}
+                          onChange={(e) => handleInputChange('contact_person', e.target.value)}
+                          placeholder="Rajesh Sharma"
+                          required
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="gst_number">GST Number</Label>
+                        <Input
+                          id="gst_number"
+                          value={formData.gst_number}
+                          onChange={(e) => handleInputChange('gst_number', e.target.value)}
+                          placeholder="27AABCS1234C1Z5"
+                          maxLength={15}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="status">Status</Label>
+                        <Select
+                          value={formData.status}
+                          onValueChange={(value) => handleInputChange('status', value)}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select status" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Active">Active</SelectItem>
+                            <SelectItem value="Inactive">Inactive</SelectItem>
+                            <SelectItem value="Overdue">Overdue</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Contact Information */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Phone className="h-5 w-5" />
+                      Contact Information
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="phone">Primary Phone *</Label>
+                        <Input
+                          id="phone"
+                          type="tel"
+                          value={formData.phone}
+                          onChange={(e) => handleInputChange('phone', e.target.value)}
+                          placeholder="+91 98765 43210"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="email">Email Address</Label>
+                        <Input
+                          id="email"
+                          type="email"
+                          value={formData.email}
+                          onChange={(e) => handleInputChange('email', e.target.value)}
+                          placeholder="rajesh@sharmaconstruction.com"
+                        />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Address Information */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <MapPin className="h-5 w-5" />
+                      Address Information
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
                     <div>
-                      <Label htmlFor="companyName">
-                        Company/Business Name *
-                      </Label>
+                      <Label htmlFor="address">Complete Address</Label>
+                      <Textarea
+                        id="address"
+                        value={formData.address}
+                        onChange={(e) => handleInputChange('address', e.target.value)}
+                        placeholder="123 MG Road, Commercial Complex"
+                        rows={3}
+                      />
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div>
+                        <Label htmlFor="city">City</Label>
+                        <Input 
+                          id="city" 
+                          value={formData.city}
+                          onChange={(e) => handleInputChange('city', e.target.value)}
+                          placeholder="Mumbai" 
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="state">State</Label>
+                        <Select
+                          value={formData.state}
+                          onValueChange={(value) => handleInputChange('state', value)}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select state" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Maharashtra">Maharashtra</SelectItem>
+                            <SelectItem value="Gujarat">Gujarat</SelectItem>
+                            <SelectItem value="Rajasthan">Rajasthan</SelectItem>
+                            <SelectItem value="Delhi">Delhi</SelectItem>
+                            <SelectItem value="Karnataka">Karnataka</SelectItem>
+                            <SelectItem value="Tamil Nadu">Tamil Nadu</SelectItem>
+                            <SelectItem value="Telangana">Telangana</SelectItem>
+                            <SelectItem value="Andhra Pradesh">Andhra Pradesh</SelectItem>
+                            <SelectItem value="Kerala">Kerala</SelectItem>
+                            <SelectItem value="West Bengal">West Bengal</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label htmlFor="pincode">PIN Code</Label>
+                        <Input
+                          id="pincode"
+                          value={formData.pincode}
+                          onChange={(e) => handleInputChange('pincode', e.target.value)}
+                          placeholder="400001"
+                          maxLength={6}
+                        />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Business Settings */}
+              <div className="space-y-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Business Settings</CardTitle>
+                    <CardDescription>
+                      Configure payment and credit terms
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div>
+                      <Label htmlFor="credit_limit">Credit Limit (₹)</Label>
                       <Input
-                        id="companyName"
-                        placeholder="Sharma Construction"
-                        required
+                        id="credit_limit"
+                        type="number"
+                        value={formData.credit_limit}
+                        onChange={(e) => handleInputChange('credit_limit', e.target.value)}
+                        placeholder="50000"
+                        min="0"
                       />
                     </div>
                     <div>
-                      <Label htmlFor="contactPerson">Contact Person *</Label>
-                      <Input
-                        id="contactPerson"
-                        placeholder="Rajesh Sharma"
-                        required
-                      />
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="customerType">Customer Type</Label>
-                      <Select>
+                      <Label htmlFor="payment_terms">Payment Terms</Label>
+                      <Select
+                        value={formData.payment_terms}
+                        onValueChange={(value) => handleInputChange('payment_terms', value)}
+                      >
                         <SelectTrigger>
-                          <SelectValue placeholder="Select type" />
+                          <SelectValue placeholder="Select terms" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="retailer">Retailer</SelectItem>
-                          <SelectItem value="contractor">Contractor</SelectItem>
-                          <SelectItem value="builder">Builder</SelectItem>
-                          <SelectItem value="individual">Individual</SelectItem>
+                          <SelectItem value="Immediate">Immediate</SelectItem>
+                          <SelectItem value="15 days">15 Days</SelectItem>
+                          <SelectItem value="30 days">30 Days</SelectItem>
+                          <SelectItem value="45 days">45 Days</SelectItem>
+                          <SelectItem value="60 days">60 Days</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
-                    <div>
-                      <Label htmlFor="gstNumber">GST Number</Label>
-                      <Input
-                        id="gstNumber"
-                        placeholder="27AABCS1234C1Z5"
-                        maxLength={15}
-                      />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
 
-              {/* Contact Information */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Phone className="h-5 w-5" />
-                    Contact Information
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="phone">Primary Phone *</Label>
-                      <Input
-                        id="phone"
-                        type="tel"
-                        placeholder="+91 98765 43210"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="altPhone">Alternate Phone</Label>
-                      <Input
-                        id="altPhone"
-                        type="tel"
-                        placeholder="+91 87654 32109"
-                      />
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="email">Email Address</Label>
-                      <Input
-                        id="email"
-                        type="email"
-                        placeholder="rajesh@sharmaconstruction.com"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="website">Website</Label>
-                      <Input
-                        id="website"
-                        type="url"
-                        placeholder="www.sharmaconstruction.com"
-                      />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Address Information */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <MapPin className="h-5 w-5" />
-                    Address Information
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <Label htmlFor="address">Complete Address *</Label>
-                    <Textarea
-                      id="address"
-                      placeholder="123 MG Road, Commercial Complex"
-                      rows={3}
-                      required
-                    />
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                      <Label htmlFor="city">City *</Label>
-                      <Input id="city" placeholder="Mumbai" required />
-                    </div>
-                    <div>
-                      <Label htmlFor="state">State *</Label>
-                      <Select>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select state" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="maharashtra">
-                            Maharashtra
-                          </SelectItem>
-                          <SelectItem value="gujarat">Gujarat</SelectItem>
-                          <SelectItem value="rajasthan">Rajasthan</SelectItem>
-                          <SelectItem value="delhi">Delhi</SelectItem>
-                          <SelectItem value="karnataka">Karnataka</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div>
-                      <Label htmlFor="pincode">PIN Code *</Label>
-                      <Input
-                        id="pincode"
-                        placeholder="400001"
-                        maxLength={6}
-                        required
-                      />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Business Settings */}
-            <div className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Business Settings</CardTitle>
-                  <CardDescription>
-                    Configure payment and credit terms
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <Label htmlFor="creditLimit">Credit Limit (₹)</Label>
-                    <Input
-                      id="creditLimit"
-                      type="number"
-                      placeholder="50000"
-                      min="0"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="paymentTerms">Payment Terms</Label>
-                    <Select>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select terms" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="immediate">Immediate</SelectItem>
-                        <SelectItem value="15days">15 Days</SelectItem>
-                        <SelectItem value="30days">30 Days</SelectItem>
-                        <SelectItem value="45days">45 Days</SelectItem>
-                        <SelectItem value="60days">60 Days</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label htmlFor="discount">Default Discount (%)</Label>
-                    <Input
-                      id="discount"
-                      type="number"
-                      placeholder="5"
-                      min="0"
-                      max="100"
-                      step="0.1"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="priceCategory">Price Category</Label>
-                    <Select>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select category" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="retail">Retail Price</SelectItem>
-                        <SelectItem value="wholesale">
-                          Wholesale Price
-                        </SelectItem>
-                        <SelectItem value="contractor">
-                          Contractor Price
-                        </SelectItem>
-                        <SelectItem value="special">Special Price</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Additional Information</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <Label htmlFor="notes">Notes</Label>
-                    <Textarea
-                      id="notes"
-                      placeholder="Any additional notes about the customer..."
-                      rows={4}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="referredBy">Referred By</Label>
-                    <Input id="referredBy" placeholder="Reference source" />
-                  </div>
-                </CardContent>
-              </Card>
-
-              <div className="space-y-3">
-                <Button className="w-full bg-orange-600 hover:bg-orange-700">
-                  <Save className="w-4 h-4 mr-2" />
-                  Save Customer
-                </Button>
-                <Button variant="outline" className="w-full">
-                  Save & Add Another
-                </Button>
+                <div className="space-y-3">
+                  <Button 
+                    type="submit"
+                    disabled={saving}
+                    className="w-full bg-orange-600 hover:bg-orange-700"
+                  >
+                    {saving ? (
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    ) : (
+                      <Save className="w-4 h-4 mr-2" />
+                    )}
+                    {saving ? 'Saving...' : 'Save Customer'}
+                  </Button>
+                  <Link href="/dashboard/customers">
+                    <Button variant="outline" className="w-full">
+                      Cancel
+                    </Button>
+                  </Link>
+                </div>
               </div>
             </div>
-          </div>
+          </form>
         </div>
       </main>
     </>

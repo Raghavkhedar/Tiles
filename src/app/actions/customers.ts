@@ -5,13 +5,24 @@ import { revalidatePath } from 'next/cache'
 import { CustomerInsert, CustomerUpdate } from '@/types/database'
 
 // Customer Actions
-export async function createCustomer(data: CustomerInsert) {
+export async function createCustomer(data: Omit<CustomerInsert, 'user_id'>) {
   try {
     const supabase = await createClient()
     
+    // Get current user
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      return { success: false, error: 'User not authenticated' }
+    }
+
+    const customerData: CustomerInsert = {
+      ...data,
+      user_id: user.id
+    }
+    
     const { data: customer, error } = await supabase
       .from('customers')
-      .insert(data)
+      .insert(customerData)
       .select()
       .single()
 
@@ -32,10 +43,24 @@ export async function updateCustomer(id: string, data: CustomerUpdate) {
   try {
     const supabase = await createClient()
     
+    // Get current user
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      return { success: false, error: 'User not authenticated' }
+    }
+
+    // Add user_id to the update data
+    const updateData = {
+      ...data,
+      user_id: user.id,
+      updated_at: new Date().toISOString()
+    }
+    
     const { data: customer, error } = await supabase
       .from('customers')
-      .update(data)
+      .update(updateData)
       .eq('id', id)
+      .eq('user_id', user.id) // Ensure user can only update their own customers
       .select()
       .single()
 
@@ -56,10 +81,17 @@ export async function deleteCustomer(id: string) {
   try {
     const supabase = await createClient()
     
+    // Get current user
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      return { success: false, error: 'User not authenticated' }
+    }
+    
     const { error } = await supabase
       .from('customers')
       .delete()
       .eq('id', id)
+      .eq('user_id', user.id) // Ensure user can only delete their own customers
 
     if (error) {
       console.error('Error deleting customer:', error)
@@ -78,9 +110,16 @@ export async function getCustomers() {
   try {
     const supabase = await createClient()
     
+    // Get current user
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      return { success: false, error: 'User not authenticated' }
+    }
+    
     const { data: customers, error } = await supabase
       .from('customers')
       .select('*')
+      .eq('user_id', user.id) // Only get customers for current user
       .order('name', { ascending: true })
 
     if (error) {
