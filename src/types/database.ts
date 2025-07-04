@@ -260,6 +260,112 @@ export interface Database {
           updated_at?: string
         }
       }
+      purchase_orders: {
+        Row: {
+          id: string
+          po_number: string
+          supplier_id: string
+          order_date: string
+          expected_delivery_date: string | null
+          delivery_address: string | null
+          contact_person: string | null
+          phone: string | null
+          subtotal: number
+          gst_amount: number
+          total_amount: number
+          paid_amount: number
+          balance_amount: number
+          status: string
+          payment_terms: string | null
+          notes: string | null
+          user_id: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          po_number?: string
+          supplier_id: string
+          order_date: string
+          expected_delivery_date?: string | null
+          delivery_address?: string | null
+          contact_person?: string | null
+          phone?: string | null
+          subtotal?: number
+          gst_amount?: number
+          total_amount?: number
+          paid_amount?: number
+          balance_amount?: number
+          status?: string
+          payment_terms?: string | null
+          notes?: string | null
+          user_id: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          po_number?: string
+          supplier_id?: string
+          order_date?: string
+          expected_delivery_date?: string | null
+          delivery_address?: string | null
+          contact_person?: string | null
+          phone?: string | null
+          subtotal?: number
+          gst_amount?: number
+          total_amount?: number
+          paid_amount?: number
+          balance_amount?: number
+          status?: string
+          payment_terms?: string | null
+          notes?: string | null
+          user_id?: string
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      purchase_order_items: {
+        Row: {
+          id: string
+          purchase_order_id: string
+          product_id: string | null
+          product_name: string
+          sku: string | null
+          quantity: number
+          area: number
+          unit_price: number
+          total_price: number
+          received_quantity: number
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          purchase_order_id: string
+          product_id?: string | null
+          product_name: string
+          sku?: string | null
+          quantity: number
+          area?: number
+          unit_price: number
+          total_price: number
+          received_quantity?: number
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          purchase_order_id?: string
+          product_id?: string | null
+          product_name?: string
+          sku?: string | null
+          quantity?: number
+          area?: number
+          unit_price?: number
+          total_price?: number
+          received_quantity?: number
+          created_at?: string
+        }
+      }
       invoices: {
         Row: {
           id: string
@@ -487,6 +593,14 @@ export type Setting = Database['public']['Tables']['settings']['Row']
 export type SettingInsert = Database['public']['Tables']['settings']['Insert']
 export type SettingUpdate = Database['public']['Tables']['settings']['Update']
 
+export type PurchaseOrder = Database['public']['Tables']['purchase_orders']['Row']
+export type PurchaseOrderInsert = Database['public']['Tables']['purchase_orders']['Insert']
+export type PurchaseOrderUpdate = Database['public']['Tables']['purchase_orders']['Update']
+
+export type PurchaseOrderItem = Database['public']['Tables']['purchase_order_items']['Row']
+export type PurchaseOrderItemInsert = Database['public']['Tables']['purchase_order_items']['Insert']
+export type PurchaseOrderItemUpdate = Database['public']['Tables']['purchase_order_items']['Update']
+
 export type Invoice = Database['public']['Tables']['invoices']['Row']
 export type InvoiceInsert = Database['public']['Tables']['invoices']['Insert']
 export type InvoiceUpdate = Database['public']['Tables']['invoices']['Update']
@@ -511,6 +625,15 @@ export type DeliveryItemUpdate = Database['public']['Tables']['delivery_items'][
 export interface ProductWithRelations extends Product {
   category?: Category
   supplier?: Supplier
+}
+
+export interface PurchaseOrderWithRelations extends PurchaseOrder {
+  supplier?: Supplier
+  items?: PurchaseOrderItemWithProduct[]
+}
+
+export interface PurchaseOrderItemWithProduct extends PurchaseOrderItem {
+  product?: Product
 }
 
 export interface InvoiceWithRelations extends Invoice {

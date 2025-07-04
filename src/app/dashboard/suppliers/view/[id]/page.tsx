@@ -288,15 +288,17 @@ export default function SupplierViewPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  <Button className="w-full" variant="outline">
-                    <Package className="h-4 w-4 mr-2" />
-                    Create Purchase Order
-                  </Button>
-                  <Button className="w-full" variant="outline">
+                  <Link href={`/dashboard/purchase-orders/create?supplier=${supplier.id}`}>
+                    <Button className="w-full" variant="outline">
+                      <Package className="h-4 w-4 mr-2" />
+                      Create Purchase Order
+                    </Button>
+                  </Link>
+                  <Button className="w-full" variant="outline" disabled>
                     <Calendar className="h-4 w-4 mr-2" />
                     Schedule Delivery
                   </Button>
-                  <Button className="w-full" variant="outline">
+                  <Button className="w-full" variant="outline" disabled>
                     <IndianRupee className="h-4 w-4 mr-2" />
                     Record Payment
                   </Button>
