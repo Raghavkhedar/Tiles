@@ -47,7 +47,7 @@ export default async function Dashboard() {
   return (
     <>
       <DashboardNavbar />
-      <main className="w-full bg-gray-50 min-h-screen">
+      <main className="w-full bg-gray-50 min-h-screen pb-24">
         <div className="container mx-auto px-4 py-8">
           {/* Header Section */}
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
