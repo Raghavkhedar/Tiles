@@ -1,45 +1,29 @@
 'use client'
 
-import DashboardNavbar from "@/components/dashboard-navbar";
-import {
-  Truck,
-  Save,
-  ArrowLeft,
-  Phone,
-  Mail,
-  MapPin,
-  Building,
-  Package,
-  Loader2,
-} from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { createSupplier } from "../../../actions/suppliers";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/components/ui/use-toast";
-import Link from "next/link";
+import { useState, useEffect } from 'react'
+import { useRouter, useParams } from 'next/navigation'
+import DashboardNavbar from '@/components/dashboard-navbar'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { useToast } from '@/components/ui/use-toast'
+import { Loader2, ArrowLeft, Save, X } from 'lucide-react'
+import { getCustomer, updateCustomer } from '../../../../actions/customers'
+import { Customer } from '@/types/database'
+import Link from 'next/link'
 
-export default function AddSupplierPage() {
-  const router = useRouter();
-  const { toast } = useToast();
-  const [saving, setSaving] = useState(false);
+export default function EditCustomerPage() {
+  const router = useRouter()
+  const params = useParams()
+  const { toast } = useToast()
+  const customerId = params.id as string
+
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [customer, setCustomer] = useState<Customer | null>(null)
   const [formData, setFormData] = useState({
     name: '',
     contact_person: '',
@@ -50,23 +34,70 @@ export default function AddSupplierPage() {
     state: '',
     pincode: '',
     gst_number: '',
-    pan_number: '',
     credit_limit: '',
-    payment_terms: '30 days',
-    rating: '4.0',
+    payment_terms: '',
     status: 'Active'
-  });
+  })
+
+  useEffect(() => {
+    loadCustomer()
+  }, [customerId])
+
+  const loadCustomer = async () => {
+    setLoading(true)
+    try {
+      const result = await getCustomer(customerId)
+      if (!result.success) {
+        toast({
+          title: "Error",
+          description: result.error || "Failed to load customer",
+          variant: "destructive",
+        })
+        router.push('/dashboard/customers')
+        return
+      }
+
+      const customerData = result.data
+      setCustomer(customerData)
+
+      // Set form data
+      setFormData({
+        name: customerData.name || '',
+        contact_person: customerData.contact_person || '',
+        phone: customerData.phone || '',
+        email: customerData.email || '',
+        address: customerData.address || '',
+        city: customerData.city || '',
+        state: customerData.state || '',
+        pincode: customerData.pincode || '',
+        gst_number: customerData.gst_number || '',
+        credit_limit: customerData.credit_limit?.toString() || '',
+        payment_terms: customerData.payment_terms || '',
+        status: customerData.status || 'Active'
+      })
+
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to load customer data",
+        variant: "destructive",
+      })
+      router.push('/dashboard/customers')
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
-    }));
-  };
+    }))
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSaving(true);
+    e.preventDefault()
+    setSaving(true)
 
     try {
       // Validate required fields
@@ -75,12 +106,12 @@ export default function AddSupplierPage() {
           title: "Validation Error",
           description: "Company name, contact person, and phone are required fields",
           variant: "destructive",
-        });
-        return;
+        })
+        return
       }
 
-      // Prepare supplier data
-      const supplierData = {
+      // Prepare update data
+      const updateData = {
         name: formData.name,
         contact_person: formData.contact_person,
         phone: formData.phone,
@@ -90,38 +121,70 @@ export default function AddSupplierPage() {
         state: formData.state || null,
         pincode: formData.pincode || null,
         gst_number: formData.gst_number || null,
-        pan_number: formData.pan_number || null,
         credit_limit: formData.credit_limit ? parseFloat(formData.credit_limit) : 0,
-        payment_terms: formData.payment_terms,
-        rating: parseFloat(formData.rating),
+        payment_terms: formData.payment_terms || '30 days',
         status: formData.status
-      };
+      }
 
-      const result = await createSupplier(supplierData);
+      const result = await updateCustomer(customerId, updateData)
       
       if (result.success) {
         toast({
           title: "Success!",
-          description: "Supplier created successfully",
-        });
-        router.push('/dashboard/suppliers');
+          description: "Customer updated successfully",
+        })
+        router.push('/dashboard/customers')
       } else {
         toast({
           title: "Error",
-          description: result.error || "Failed to create supplier",
+          description: result.error || "Failed to update customer",
           variant: "destructive",
-        });
+        })
       }
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to create supplier",
+        description: "Failed to update customer",
         variant: "destructive",
-      });
+      })
     } finally {
-      setSaving(false);
+      setSaving(false)
     }
-  };
+  }
+
+  if (loading) {
+    return (
+      <>
+        <DashboardNavbar />
+        <main className="w-full bg-gray-50 min-h-screen">
+          <div className="container mx-auto px-4 py-8">
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="h-8 w-8 animate-spin" />
+              <span className="ml-2">Loading customer...</span>
+            </div>
+          </div>
+        </main>
+      </>
+    )
+  }
+
+  if (!customer) {
+    return (
+      <>
+        <DashboardNavbar />
+        <main className="w-full bg-gray-50 min-h-screen">
+          <div className="container mx-auto px-4 py-8">
+            <div className="text-center py-8">
+              <p className="text-gray-600">Customer not found</p>
+              <Link href="/dashboard/customers">
+                <Button className="mt-4">Back to Customers</Button>
+              </Link>
+            </div>
+          </div>
+        </main>
+      </>
+    )
+  }
 
   return (
     <>
@@ -129,47 +192,65 @@ export default function AddSupplierPage() {
       <main className="w-full bg-gray-50 min-h-screen">
         <div className="container mx-auto px-4 py-8">
           {/* Header */}
-          <div className="flex items-center gap-4 mb-8">
-            <Link href="/dashboard/suppliers">
-              <Button variant="outline" size="sm">
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back to Suppliers
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center gap-4">
+              <Link href="/dashboard/customers">
+                <Button variant="ghost" size="sm">
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Back
+                </Button>
+              </Link>
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900">Edit Customer</h1>
+                <p className="text-gray-600">Update customer information</p>
+              </div>
+            </div>
+            <div className="flex gap-3">
+              <Link href="/dashboard/customers">
+                <Button variant="outline">
+                  <X className="h-4 w-4 mr-2" />
+                  Cancel
+                </Button>
+              </Link>
+              <Button 
+                onClick={handleSubmit} 
+                disabled={saving}
+                className="bg-orange-600 hover:bg-orange-700"
+              >
+                {saving ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Save className="h-4 w-4 mr-2" />
+                )}
+                {saving ? 'Saving...' : 'Save Changes'}
               </Button>
-            </Link>
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">
-                Add New Supplier
-              </h1>
-              <p className="text-gray-600">
-                Create a new supplier profile for your business
-              </p>
             </div>
           </div>
 
+          {/* Form */}
           <form onSubmit={handleSubmit}>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              {/* Supplier Form */}
+              {/* Customer Form */}
               <div className="lg:col-span-2 space-y-6">
                 {/* Basic Information */}
                 <Card>
                   <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Building className="h-5 w-5" />
-                      Company Information
-                    </CardTitle>
+                    <CardTitle>Basic Information</CardTitle>
                     <CardDescription>
-                      Enter the supplier's basic company details
+                      Enter the customer's basic details
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <Label htmlFor="name">Company Name *</Label>
+                        <Label htmlFor="name">
+                          Company/Business Name *
+                        </Label>
                         <Input
                           id="name"
                           value={formData.name}
                           onChange={(e) => handleInputChange('name', e.target.value)}
-                          placeholder="ABC Ceramics Ltd"
+                          placeholder="Sharma Construction"
                           required
                         />
                       </div>
@@ -179,7 +260,7 @@ export default function AddSupplierPage() {
                           id="contact_person"
                           value={formData.contact_person}
                           onChange={(e) => handleInputChange('contact_person', e.target.value)}
-                          placeholder="Ramesh Gupta"
+                          placeholder="Rajesh Sharma"
                           required
                         />
                       </div>
@@ -191,39 +272,9 @@ export default function AddSupplierPage() {
                           id="gst_number"
                           value={formData.gst_number}
                           onChange={(e) => handleInputChange('gst_number', e.target.value)}
-                          placeholder="24AABCA1234B1Z5"
+                          placeholder="27AABCS1234C1Z5"
                           maxLength={15}
                         />
-                      </div>
-                      <div>
-                        <Label htmlFor="pan_number">PAN Number</Label>
-                        <Input
-                          id="pan_number"
-                          value={formData.pan_number}
-                          onChange={(e) => handleInputChange('pan_number', e.target.value)}
-                          placeholder="AABCA1234B"
-                          maxLength={10}
-                        />
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="rating">Rating</Label>
-                        <Select
-                          value={formData.rating}
-                          onValueChange={(value) => handleInputChange('rating', value)}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select rating" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="5.0">5.0 - Excellent</SelectItem>
-                            <SelectItem value="4.5">4.5 - Very Good</SelectItem>
-                            <SelectItem value="4.0">4.0 - Good</SelectItem>
-                            <SelectItem value="3.5">3.5 - Average</SelectItem>
-                            <SelectItem value="3.0">3.0 - Below Average</SelectItem>
-                          </SelectContent>
-                        </Select>
                       </div>
                       <div>
                         <Label htmlFor="status">Status</Label>
@@ -237,6 +288,7 @@ export default function AddSupplierPage() {
                           <SelectContent>
                             <SelectItem value="Active">Active</SelectItem>
                             <SelectItem value="Inactive">Inactive</SelectItem>
+                            <SelectItem value="Overdue">Overdue</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
@@ -247,10 +299,7 @@ export default function AddSupplierPage() {
                 {/* Contact Information */}
                 <Card>
                   <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Phone className="h-5 w-5" />
-                      Contact Information
-                    </CardTitle>
+                    <CardTitle>Contact Information</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -272,7 +321,7 @@ export default function AddSupplierPage() {
                           type="email"
                           value={formData.email}
                           onChange={(e) => handleInputChange('email', e.target.value)}
-                          placeholder="ramesh@abcceramics.com"
+                          placeholder="rajesh@sharmaconstruction.com"
                         />
                       </div>
                     </div>
@@ -282,10 +331,7 @@ export default function AddSupplierPage() {
                 {/* Address Information */}
                 <Card>
                   <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <MapPin className="h-5 w-5" />
-                      Address Information
-                    </CardTitle>
+                    <CardTitle>Address Information</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div>
@@ -294,7 +340,7 @@ export default function AddSupplierPage() {
                         id="address"
                         value={formData.address}
                         onChange={(e) => handleInputChange('address', e.target.value)}
-                        placeholder="Industrial Area, Phase 1, Morbi, Gujarat 363641"
+                        placeholder="123 MG Road, Commercial Complex"
                         rows={3}
                       />
                     </div>
@@ -305,7 +351,7 @@ export default function AddSupplierPage() {
                           id="city" 
                           value={formData.city}
                           onChange={(e) => handleInputChange('city', e.target.value)}
-                          placeholder="Morbi" 
+                          placeholder="Mumbai" 
                         />
                       </div>
                       <div>
@@ -318,8 +364,8 @@ export default function AddSupplierPage() {
                             <SelectValue placeholder="Select state" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="Gujarat">Gujarat</SelectItem>
                             <SelectItem value="Maharashtra">Maharashtra</SelectItem>
+                            <SelectItem value="Gujarat">Gujarat</SelectItem>
                             <SelectItem value="Rajasthan">Rajasthan</SelectItem>
                             <SelectItem value="Delhi">Delhi</SelectItem>
                             <SelectItem value="Karnataka">Karnataka</SelectItem>
@@ -337,7 +383,7 @@ export default function AddSupplierPage() {
                           id="pincode"
                           value={formData.pincode}
                           onChange={(e) => handleInputChange('pincode', e.target.value)}
-                          placeholder="363641"
+                          placeholder="400001"
                           maxLength={6}
                         />
                       </div>
@@ -350,10 +396,7 @@ export default function AddSupplierPage() {
               <div className="space-y-6">
                 <Card>
                   <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Package className="h-5 w-5" />
-                      Business Settings
-                    </CardTitle>
+                    <CardTitle>Business Settings</CardTitle>
                     <CardDescription>
                       Configure payment and credit terms
                     </CardDescription>
@@ -366,7 +409,7 @@ export default function AddSupplierPage() {
                         type="number"
                         value={formData.credit_limit}
                         onChange={(e) => handleInputChange('credit_limit', e.target.value)}
-                        placeholder="100000"
+                        placeholder="50000"
                         min="0"
                       />
                     </div>
@@ -390,36 +433,11 @@ export default function AddSupplierPage() {
                     </div>
                   </CardContent>
                 </Card>
-
-                {/* Save Button */}
-                <Card>
-                  <CardContent className="pt-6">
-                    <div className="space-y-4">
-                      <Button 
-                        type="submit" 
-                        className="w-full bg-orange-600 hover:bg-orange-700"
-                        disabled={saving}
-                      >
-                        {saving ? (
-                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        ) : (
-                          <Save className="h-4 w-4 mr-2" />
-                        )}
-                        {saving ? 'Creating Supplier...' : 'Create Supplier'}
-                      </Button>
-                      <Link href="/dashboard/suppliers">
-                        <Button variant="outline" className="w-full">
-                          Cancel
-                        </Button>
-                      </Link>
-                    </div>
-                  </CardContent>
-                </Card>
               </div>
             </div>
           </form>
         </div>
       </main>
     </>
-  );
-}
+  )
+} 

@@ -1,45 +1,29 @@
 'use client'
 
-import DashboardNavbar from "@/components/dashboard-navbar";
-import {
-  Truck,
-  Save,
-  ArrowLeft,
-  Phone,
-  Mail,
-  MapPin,
-  Building,
-  Package,
-  Loader2,
-} from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { createSupplier } from "../../../actions/suppliers";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/components/ui/use-toast";
-import Link from "next/link";
+import { useState, useEffect } from 'react'
+import { useRouter, useParams } from 'next/navigation'
+import DashboardNavbar from '@/components/dashboard-navbar'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { useToast } from '@/components/ui/use-toast'
+import { Loader2, ArrowLeft, Save, X } from 'lucide-react'
+import { getSupplier, updateSupplier } from '../../../../actions/suppliers'
+import { Supplier } from '@/types/database'
+import Link from 'next/link'
 
-export default function AddSupplierPage() {
-  const router = useRouter();
-  const { toast } = useToast();
-  const [saving, setSaving] = useState(false);
+export default function EditSupplierPage() {
+  const router = useRouter()
+  const params = useParams()
+  const { toast } = useToast()
+  const supplierId = params.id as string
+
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [supplier, setSupplier] = useState<Supplier | null>(null)
   const [formData, setFormData] = useState({
     name: '',
     contact_person: '',
@@ -52,21 +36,72 @@ export default function AddSupplierPage() {
     gst_number: '',
     pan_number: '',
     credit_limit: '',
-    payment_terms: '30 days',
-    rating: '4.0',
+    payment_terms: '',
+    rating: '',
     status: 'Active'
-  });
+  })
+
+  useEffect(() => {
+    loadSupplier()
+  }, [supplierId])
+
+  const loadSupplier = async () => {
+    setLoading(true)
+    try {
+      const result = await getSupplier(supplierId)
+      if (!result.success) {
+        toast({
+          title: "Error",
+          description: result.error || "Failed to load supplier",
+          variant: "destructive",
+        })
+        router.push('/dashboard/suppliers')
+        return
+      }
+
+      const supplierData = result.data
+      setSupplier(supplierData)
+
+      // Set form data
+      setFormData({
+        name: supplierData.name || '',
+        contact_person: supplierData.contact_person || '',
+        phone: supplierData.phone || '',
+        email: supplierData.email || '',
+        address: supplierData.address || '',
+        city: supplierData.city || '',
+        state: supplierData.state || '',
+        pincode: supplierData.pincode || '',
+        gst_number: supplierData.gst_number || '',
+        pan_number: supplierData.pan_number || '',
+        credit_limit: supplierData.credit_limit?.toString() || '',
+        payment_terms: supplierData.payment_terms || '',
+        rating: supplierData.rating?.toString() || '',
+        status: supplierData.status || 'Active'
+      })
+
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to load supplier data",
+        variant: "destructive",
+      })
+      router.push('/dashboard/suppliers')
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
-    }));
-  };
+    }))
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSaving(true);
+    e.preventDefault()
+    setSaving(true)
 
     try {
       // Validate required fields
@@ -75,12 +110,12 @@ export default function AddSupplierPage() {
           title: "Validation Error",
           description: "Company name, contact person, and phone are required fields",
           variant: "destructive",
-        });
-        return;
+        })
+        return
       }
 
-      // Prepare supplier data
-      const supplierData = {
+      // Prepare update data
+      const updateData = {
         name: formData.name,
         contact_person: formData.contact_person,
         phone: formData.phone,
@@ -92,36 +127,70 @@ export default function AddSupplierPage() {
         gst_number: formData.gst_number || null,
         pan_number: formData.pan_number || null,
         credit_limit: formData.credit_limit ? parseFloat(formData.credit_limit) : 0,
-        payment_terms: formData.payment_terms,
-        rating: parseFloat(formData.rating),
+        payment_terms: formData.payment_terms || '30 days',
+        rating: formData.rating ? parseFloat(formData.rating) : 4.0,
         status: formData.status
-      };
+      }
 
-      const result = await createSupplier(supplierData);
+      const result = await updateSupplier(supplierId, updateData)
       
       if (result.success) {
         toast({
           title: "Success!",
-          description: "Supplier created successfully",
-        });
-        router.push('/dashboard/suppliers');
+          description: "Supplier updated successfully",
+        })
+        router.push('/dashboard/suppliers')
       } else {
         toast({
           title: "Error",
-          description: result.error || "Failed to create supplier",
+          description: result.error || "Failed to update supplier",
           variant: "destructive",
-        });
+        })
       }
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to create supplier",
+        description: "Failed to update supplier",
         variant: "destructive",
-      });
+      })
     } finally {
-      setSaving(false);
+      setSaving(false)
     }
-  };
+  }
+
+  if (loading) {
+    return (
+      <>
+        <DashboardNavbar />
+        <main className="w-full bg-gray-50 min-h-screen">
+          <div className="container mx-auto px-4 py-8">
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="h-8 w-8 animate-spin" />
+              <span className="ml-2">Loading supplier...</span>
+            </div>
+          </div>
+        </main>
+      </>
+    )
+  }
+
+  if (!supplier) {
+    return (
+      <>
+        <DashboardNavbar />
+        <main className="w-full bg-gray-50 min-h-screen">
+          <div className="container mx-auto px-4 py-8">
+            <div className="text-center py-8">
+              <p className="text-gray-600">Supplier not found</p>
+              <Link href="/dashboard/suppliers">
+                <Button className="mt-4">Back to Suppliers</Button>
+              </Link>
+            </div>
+          </div>
+        </main>
+      </>
+    )
+  }
 
   return (
     <>
@@ -129,23 +198,42 @@ export default function AddSupplierPage() {
       <main className="w-full bg-gray-50 min-h-screen">
         <div className="container mx-auto px-4 py-8">
           {/* Header */}
-          <div className="flex items-center gap-4 mb-8">
-            <Link href="/dashboard/suppliers">
-              <Button variant="outline" size="sm">
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back to Suppliers
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center gap-4">
+              <Link href="/dashboard/suppliers">
+                <Button variant="ghost" size="sm">
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Back
+                </Button>
+              </Link>
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900">Edit Supplier</h1>
+                <p className="text-gray-600">Update supplier information</p>
+              </div>
+            </div>
+            <div className="flex gap-3">
+              <Link href="/dashboard/suppliers">
+                <Button variant="outline">
+                  <X className="h-4 w-4 mr-2" />
+                  Cancel
+                </Button>
+              </Link>
+              <Button 
+                onClick={handleSubmit} 
+                disabled={saving}
+                className="bg-orange-600 hover:bg-orange-700"
+              >
+                {saving ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Save className="h-4 w-4 mr-2" />
+                )}
+                {saving ? 'Saving...' : 'Save Changes'}
               </Button>
-            </Link>
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">
-                Add New Supplier
-              </h1>
-              <p className="text-gray-600">
-                Create a new supplier profile for your business
-              </p>
             </div>
           </div>
 
+          {/* Form */}
           <form onSubmit={handleSubmit}>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               {/* Supplier Form */}
@@ -153,18 +241,17 @@ export default function AddSupplierPage() {
                 {/* Basic Information */}
                 <Card>
                   <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Building className="h-5 w-5" />
-                      Company Information
-                    </CardTitle>
+                    <CardTitle>Basic Information</CardTitle>
                     <CardDescription>
-                      Enter the supplier's basic company details
+                      Enter the supplier's basic details
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <Label htmlFor="name">Company Name *</Label>
+                        <Label htmlFor="name">
+                          Company Name *
+                        </Label>
                         <Input
                           id="name"
                           value={formData.name}
@@ -247,10 +334,7 @@ export default function AddSupplierPage() {
                 {/* Contact Information */}
                 <Card>
                   <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Phone className="h-5 w-5" />
-                      Contact Information
-                    </CardTitle>
+                    <CardTitle>Contact Information</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -282,10 +366,7 @@ export default function AddSupplierPage() {
                 {/* Address Information */}
                 <Card>
                   <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <MapPin className="h-5 w-5" />
-                      Address Information
-                    </CardTitle>
+                    <CardTitle>Address Information</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div>
@@ -350,10 +431,7 @@ export default function AddSupplierPage() {
               <div className="space-y-6">
                 <Card>
                   <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Package className="h-5 w-5" />
-                      Business Settings
-                    </CardTitle>
+                    <CardTitle>Business Settings</CardTitle>
                     <CardDescription>
                       Configure payment and credit terms
                     </CardDescription>
@@ -390,36 +468,11 @@ export default function AddSupplierPage() {
                     </div>
                   </CardContent>
                 </Card>
-
-                {/* Save Button */}
-                <Card>
-                  <CardContent className="pt-6">
-                    <div className="space-y-4">
-                      <Button 
-                        type="submit" 
-                        className="w-full bg-orange-600 hover:bg-orange-700"
-                        disabled={saving}
-                      >
-                        {saving ? (
-                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        ) : (
-                          <Save className="h-4 w-4 mr-2" />
-                        )}
-                        {saving ? 'Creating Supplier...' : 'Create Supplier'}
-                      </Button>
-                      <Link href="/dashboard/suppliers">
-                        <Button variant="outline" className="w-full">
-                          Cancel
-                        </Button>
-                      </Link>
-                    </div>
-                  </CardContent>
-                </Card>
               </div>
             </div>
           </form>
         </div>
       </main>
     </>
-  );
-}
+  )
+} 
