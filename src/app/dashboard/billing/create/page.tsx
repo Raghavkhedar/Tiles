@@ -1,3 +1,4 @@
+"use client";
 import DashboardNavbar from "@/components/dashboard-navbar";
 import {
   FileText,
@@ -9,7 +10,9 @@ import {
   ArrowLeft,
 } from "lucide-react";
 import { redirect } from "next/navigation";
-import { createClient } from "../../../../../supabase/server";
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { createClient } from '@supabase/supabase-js';
 import {
   Card,
   CardContent,
@@ -37,17 +40,154 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import Link from "next/link";
+import { Product } from '@/types/database';
+import { getProducts } from '@/app/actions/inventory';
 
-export default async function CreateInvoicePage() {
-  const supabase = await createClient();
+export default function CreateInvoicePage() {
+  const router = useRouter();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const [products, setProducts] = useState<Product[]>([]);
+  const [items, setItems] = useState([
+    {
+      product_id: '',
+      product_name: '',
+      purchase_type: 'boxes',
+      quantity: 1,
+      area: 0,
+      unit_price: 0,
+      total_price: 0,
+    },
+  ]);
 
-  if (!user) {
-    return redirect("/sign-in");
-  }
+  useEffect(() => {
+    async function loadProducts() {
+      const result = await getProducts();
+      if (result.success) {
+        // Sort products by name
+        setProducts((result.data || []).sort((a, b) => a.name.localeCompare(b.name)));
+      }
+    }
+    loadProducts();
+  }, []);
+
+  const addItem = () => {
+    setItems([
+      ...items,
+      {
+        product_id: '',
+        product_name: '',
+        purchase_type: 'boxes',
+        quantity: 1,
+        area: 0,
+        unit_price: 0,
+        total_price: 0,
+      },
+    ]);
+  };
+
+  const removeItem = (index: number) => {
+    if (items.length > 1) {
+      setItems(items.filter((_, i) => i !== index));
+    }
+  };
+
+  const handleProductSelect = (index: number, productId: string) => {
+    const product = products.find((p) => p.id === productId);
+    if (product) {
+      const updatedItems = [...items];
+      updatedItems[index] = {
+        ...updatedItems[index],
+        product_id: productId,
+        product_name: product.name,
+        unit_price: product.price_per_box,
+        quantity: 1,
+        area: product.area_per_box,
+        total_price: product.price_per_box,
+      };
+      setItems(updatedItems);
+    }
+  };
+
+  const calculateQuantityFromArea = (area: number, areaPerBox: number): number => {
+    return Math.ceil(area / areaPerBox);
+  };
+
+  const calculateAreaFromQuantity = (quantity: number, areaPerBox: number): number => {
+    return quantity * areaPerBox;
+  };
+
+  const handlePurchaseTypeChange = (index: number, purchaseType: 'boxes' | 'area') => {
+    const item = items[index];
+    const product = products.find((p) => p.id === item.product_id);
+    const updatedItems = [...items];
+    if (product) {
+      if (purchaseType === 'area') {
+        const area = calculateAreaFromQuantity(item.quantity, product.area_per_box);
+        updatedItems[index] = {
+          ...updatedItems[index],
+          purchase_type: purchaseType,
+          area: area,
+        };
+      } else {
+        const quantity = calculateQuantityFromArea(item.area, product.area_per_box);
+        updatedItems[index] = {
+          ...updatedItems[index],
+          purchase_type: purchaseType,
+          quantity: quantity,
+        };
+      }
+    } else {
+      updatedItems[index] = {
+        ...updatedItems[index],
+        purchase_type: purchaseType,
+      };
+    }
+    setItems(updatedItems);
+  };
+
+  const handleQuantityChange = (index: number, value: number) => {
+    const item = items[index];
+    const product = products.find((p) => p.id === item.product_id);
+    const updatedItems = [...items];
+    if (product) {
+      const area = calculateAreaFromQuantity(value, product.area_per_box);
+      updatedItems[index] = {
+        ...updatedItems[index],
+        quantity: value,
+        area: area,
+        total_price: value * item.unit_price,
+      };
+    } else {
+      updatedItems[index] = {
+        ...updatedItems[index],
+        quantity: value,
+        total_price: value * item.unit_price,
+      };
+    }
+    setItems(updatedItems);
+  };
+
+  const handleAreaChange = (index: number, value: number) => {
+    const item = items[index];
+    const product = products.find((p) => p.id === item.product_id);
+    const updatedItems = [...items];
+    if (product) {
+      const quantity = calculateQuantityFromArea(value, product.area_per_box);
+      updatedItems[index] = {
+        ...updatedItems[index],
+        area: value,
+        quantity: quantity,
+        total_price: quantity * item.unit_price,
+      };
+    } else {
+      updatedItems[index] = {
+        ...updatedItems[index],
+        area: value,
+        total_price: value * item.unit_price,
+      };
+    }
+    setItems(updatedItems);
+  };
 
   return (
     <>
