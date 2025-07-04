@@ -43,10 +43,7 @@ export default function EditProductPage() {
     current_stock: '',
     min_stock: '',
     max_stock: '',
-    weight_per_box: '',
-    color: '',
-    finish: '',
-    material: ''
+    weight_per_box: ''
   })
 
   useEffect(() => {
@@ -88,10 +85,7 @@ export default function EditProductPage() {
         current_stock: productData.current_stock?.toString() || '',
         min_stock: productData.min_stock?.toString() || '',
         max_stock: productData.max_stock?.toString() || '',
-        weight_per_box: productData.weight_per_box?.toString() || '',
-        color: productData.color || '',
-        finish: productData.finish || '',
-        material: productData.material || ''
+        weight_per_box: productData.weight_per_box?.toString() || ''
       })
 
       // Load categories and suppliers
@@ -165,19 +159,16 @@ export default function EditProductPage() {
         category_id: formData.category_id || null,
         supplier_id: formData.supplier_id || null,
         brand: formData.brand,
-        length: formData.length ? parseFloat(formData.length) : null,
-        width: formData.width ? parseFloat(formData.width) : null,
-        thickness: formData.thickness ? parseFloat(formData.thickness) : null,
-        price_per_box: formData.price_per_box ? parseFloat(formData.price_per_box) : null,
-        tiles_per_box: formData.tiles_per_box ? parseInt(formData.tiles_per_box) : null,
-        area_per_box: formData.area_per_box ? parseFloat(formData.area_per_box) : null,
-        current_stock: formData.current_stock ? parseInt(formData.current_stock) : null,
-        min_stock: formData.min_stock ? parseInt(formData.min_stock) : null,
-        max_stock: formData.max_stock ? parseInt(formData.max_stock) : null,
-        weight_per_box: formData.weight_per_box ? parseFloat(formData.weight_per_box) : null,
-        color: formData.color,
-        finish: formData.finish,
-        material: formData.material
+        length: formData.length ? parseFloat(formData.length) : undefined,
+        width: formData.width ? parseFloat(formData.width) : undefined,
+        thickness: formData.thickness ? parseFloat(formData.thickness) : undefined,
+        price_per_box: formData.price_per_box ? parseFloat(formData.price_per_box) : undefined,
+        tiles_per_box: formData.tiles_per_box ? parseInt(formData.tiles_per_box) : undefined,
+        area_per_box: formData.area_per_box ? parseFloat(formData.area_per_box) : undefined,
+        current_stock: formData.current_stock ? parseInt(formData.current_stock) : undefined,
+        min_stock: formData.min_stock ? parseInt(formData.min_stock) : undefined,
+        max_stock: formData.max_stock ? parseInt(formData.max_stock) : undefined,
+        weight_per_box: formData.weight_per_box ? parseFloat(formData.weight_per_box) : undefined
       }
 
       const result = await updateProduct(productId, updateData)
@@ -425,36 +416,7 @@ export default function EditProductPage() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="material">Material</Label>
-                      <Input
-                        id="material"
-                        value={formData.material}
-                        onChange={(e) => handleInputChange('material', e.target.value)}
-                        placeholder="e.g., Ceramic, Vitrified"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="finish">Finish</Label>
-                      <Input
-                        id="finish"
-                        value={formData.finish}
-                        onChange={(e) => handleInputChange('finish', e.target.value)}
-                        placeholder="e.g., Glossy, Matte"
-                      />
-                    </div>
-                  </div>
 
-                  <div>
-                    <Label htmlFor="color">Color</Label>
-                    <Input
-                      id="color"
-                      value={formData.color}
-                      onChange={(e) => handleInputChange('color', e.target.value)}
-                      placeholder="e.g., White, Blue, Black"
-                    />
-                  </div>
                 </CardContent>
               </Card>
 

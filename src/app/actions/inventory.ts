@@ -43,10 +43,24 @@ export async function updateProduct(id: string, data: ProductUpdate) {
   try {
     const supabase = await createClient()
     
+    // Get current user
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      return { success: false, error: 'User not authenticated' }
+    }
+
+    // Add user_id to the update data
+    const updateData = {
+      ...data,
+      user_id: user.id,
+      updated_at: new Date().toISOString()
+    }
+    
     const { data: product, error } = await supabase
       .from('products')
-      .update(data)
+      .update(updateData)
       .eq('id', id)
+      .eq('user_id', user.id) // Ensure user can only update their own products
       .select()
       .single()
 
@@ -386,14 +400,42 @@ export async function searchProducts(query: string) {
   try {
     const supabase = await createClient()
     
-    const { data: products, error } = await supabase
+    // First, get categories that match the search query
+    const { data: matchingCategories, error: categoryError } = await supabase
+      .from('categories')
+      .select('id')
+      .ilike('name', `%${query}%`)
+
+    if (categoryError) {
+      console.error('Error searching categories:', categoryError)
+      return { success: false, error: categoryError.message }
+    }
+
+    const categoryIds = matchingCategories?.map(cat => cat.id) || []
+    
+    // Search for products that match the query directly OR belong to matching categories
+    let productsQuery = supabase
       .from('products')
       .select(`
         *,
         category:categories(name),
         supplier:suppliers(name)
       `)
-      .or(`name.ilike.%${query}%,sku.ilike.%${query}%,description.ilike.%${query}%`)
+    
+    // Build the OR condition
+    const conditions = [
+      `name.ilike.%${query}%`,
+      `sku.ilike.%${query}%`,
+      `description.ilike.%${query}%`
+    ]
+    
+    // Add category condition if we found matching categories
+    if (categoryIds.length > 0) {
+      conditions.push(`category_id.in.(${categoryIds.join(',')})`)
+    }
+    
+    const { data: products, error } = await productsQuery
+      .or(conditions.join(','))
       .order('name', { ascending: true })
 
     if (error) {
