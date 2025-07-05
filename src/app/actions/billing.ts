@@ -9,10 +9,22 @@ export async function createInvoice(data: InvoiceInsert, items: InvoiceItemInser
   try {
     const supabase = await createClient()
     
+    // Get current user
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      return { success: false, error: 'User not authenticated' }
+    }
+
+    // Add user_id to the invoice data
+    const invoiceData = {
+      ...data,
+      user_id: user.id
+    }
+    
     // Start transaction
     const { data: invoice, error: invoiceError } = await supabase
       .from('invoices')
-      .insert(data)
+      .insert(invoiceData)
       .select()
       .single()
 

@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import Script from "next/script";
@@ -13,6 +13,7 @@ export const metadata: Metadata = {
   description:
     "Complete offline-first business management for tile retailers and wholesalers",
   manifest: "/manifest.json",
+  metadataBase: new URL("http://localhost:3000"),
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
@@ -20,14 +21,13 @@ export const metadata: Metadata = {
   },
 };
 
-export const viewport = {
+export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
-  userScalable: "no",
+  userScalable: false,
+  themeColor: "#ea580c",
 };
-
-export const themeColor = "#ea580c";
 
 export default function RootLayout({
   children,

@@ -7,10 +7,10 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription } from "@/components/ui/alert-dialog";
-import { toast } from "@/components/ui/use-toast";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { useToast } from "@/components/ui/use-toast";
 import Breadcrumb from "@/components/breadcrumb";
-import { getInvoices, deleteInvoice, updateInvoice } from "@/app/actions";
+import { getInvoices, deleteInvoice, updateInvoice } from "@/app/actions/billing";
 import { InvoiceWithRelations } from "@/types/database";
 import { Download, Eye, Edit, Trash2, Filter, Search, Plus } from "lucide-react";
 import { exportToCSV, exportToJSON } from "@/lib/utils";
@@ -19,6 +19,7 @@ const PAGE_SIZE = 10;
 
 export default function BillingPage() {
   const router = useRouter();
+  const { toast } = useToast();
   const [invoices, setInvoices] = useState<InvoiceWithRelations[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -37,14 +38,22 @@ export default function BillingPage() {
   const loadInvoices = async () => {
     try {
       setLoading(true);
-      const { data, error } = await getInvoices();
-      if (error) {
-        toast({ title: "Error", description: error, variant: "destructive" });
-      } else if (data) {
-        setInvoices(data);
+      const result = await getInvoices();
+      if (result.success) {
+        setInvoices(result.data || []);
+      } else {
+        toast({ 
+          title: "Error", 
+          description: result.error || "Failed to load invoices", 
+          variant: "destructive" 
+        });
       }
     } catch (error) {
-      toast({ title: "Error", description: "Failed to load invoices", variant: "destructive" });
+      toast({ 
+        title: "Error", 
+        description: "Failed to load invoices", 
+        variant: "destructive" 
+      });
     } finally {
       setLoading(false);
     }
@@ -100,36 +109,52 @@ export default function BillingPage() {
 
   // Stats
   const totalInvoiced = invoices.reduce((sum, inv) => sum + inv.total_amount, 0);
-  const paidInvoices = invoices.filter(inv => inv.status === 'paid');
-  const pendingInvoices = invoices.filter(inv => inv.status === 'sent' || inv.status === 'overdue');
-  const overdueInvoices = invoices.filter(inv => inv.status === 'overdue');
+  const paidInvoices = invoices.filter(inv => inv.status === 'Paid');
+  const pendingInvoices = invoices.filter(inv => inv.status === 'Draft' || inv.status === 'Sent');
+  const overdueInvoices = invoices.filter(inv => inv.status === 'Overdue');
 
   // Actions
   const handleDeleteInvoice = async (id: string) => {
     try {
-      const { error } = await deleteInvoice(id);
-      if (error) {
-        toast({ title: "Error", description: error, variant: "destructive" });
-      } else {
+      const result = await deleteInvoice(id);
+      if (result.success) {
         toast({ title: "Success", description: "Invoice deleted successfully" });
         loadInvoices();
+      } else {
+        toast({ 
+          title: "Error", 
+          description: result.error || "Failed to delete invoice", 
+          variant: "destructive" 
+        });
       }
     } catch (error) {
-      toast({ title: "Error", description: "Failed to delete invoice", variant: "destructive" });
+      toast({ 
+        title: "Error", 
+        description: "Failed to delete invoice", 
+        variant: "destructive" 
+      });
     }
   };
 
   const handleStatusChange = async (id: string, newStatus: string) => {
     try {
-      const { error } = await updateInvoice(id, { status: newStatus });
-      if (error) {
-        toast({ title: "Error", description: error, variant: "destructive" });
-      } else {
+      const result = await updateInvoice(id, { status: newStatus });
+      if (result.success) {
         toast({ title: "Success", description: "Invoice status updated" });
         loadInvoices();
+      } else {
+        toast({ 
+          title: "Error", 
+          description: result.error || "Failed to update invoice status", 
+          variant: "destructive" 
+        });
       }
     } catch (error) {
-      toast({ title: "Error", description: "Failed to update invoice status", variant: "destructive" });
+      toast({ 
+        title: "Error", 
+        description: "Failed to update invoice status", 
+        variant: "destructive" 
+      });
     }
   };
 
@@ -199,125 +224,174 @@ export default function BillingPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2"><Filter className="h-5 w-5" /> Filters & Export</CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              <Input placeholder="Search invoices..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="pl-10" />
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div>
+              <label className="text-sm font-medium">Search</label>
+              <Input
+                placeholder="Search invoices..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
             </div>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger><SelectValue placeholder="Filter by status" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="draft">Draft</SelectItem>
-                <SelectItem value="sent">Sent</SelectItem>
-                <SelectItem value="paid">Paid</SelectItem>
-                <SelectItem value="overdue">Overdue</SelectItem>
-                <SelectItem value="cancelled">Cancelled</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={customerFilter} onValueChange={setCustomerFilter}>
-              <SelectTrigger><SelectValue placeholder="Filter by customer" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Customers</SelectItem>
-                {customers.map(([id, name]) => (
-                  <SelectItem key={id} value={id}>{name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} placeholder="From" />
-            <Input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} placeholder="To" />
-          </div>
-          <div className="flex gap-2 mt-4">
-            <Button variant="outline" onClick={handleExportCSV}><Download className="h-4 w-4 mr-2" />Export CSV</Button>
-            <Button variant="outline" onClick={handleExportJSON}><Download className="h-4 w-4 mr-2" />Export JSON</Button>
+            <div>
+              <label className="text-sm font-medium">Status</label>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="Draft">Draft</SelectItem>
+                  <SelectItem value="Sent">Sent</SelectItem>
+                  <SelectItem value="Paid">Paid</SelectItem>
+                  <SelectItem value="Overdue">Overdue</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className="text-sm font-medium">Customer</label>
+              <Select value={customerFilter} onValueChange={setCustomerFilter}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Customers</SelectItem>
+                  {customers.map(([id, name]) => (
+                    <SelectItem key={id} value={id}>{name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={handleExportCSV}>
+                <Download className="h-4 w-4 mr-2" /> CSV
+              </Button>
+              <Button variant="outline" onClick={handleExportJSON}>
+                <Download className="h-4 w-4 mr-2" /> JSON
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>
 
       {/* Invoices Table */}
       <Card>
-        <CardHeader><CardTitle>Invoices</CardTitle></CardHeader>
+        <CardHeader>
+          <CardTitle>Invoices</CardTitle>
+        </CardHeader>
         <CardContent>
           {loading ? (
-            <div className="flex items-center justify-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-            </div>
-          ) : sortedInvoices.length === 0 ? (
-            <div className="text-center py-8">
-              <p className="text-muted-foreground">No invoices found</p>
-              <Button onClick={() => router.push("/dashboard/billing/create")} className="mt-2">Create your first invoice</Button>
+            <div className="flex justify-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b">
-                    <th className="text-left p-2 cursor-pointer" onClick={() => { setSortBy("date"); setSortDir(sortDir === "asc" ? "desc" : "asc"); }}>Date</th>
-                    <th className="text-left p-2">Invoice #</th>
-                    <th className="text-left p-2">Customer</th>
-                    <th className="text-left p-2 cursor-pointer" onClick={() => { setSortBy("amount"); setSortDir(sortDir === "asc" ? "desc" : "asc"); }}>Amount</th>
-                    <th className="text-left p-2">Status</th>
-                    <th className="text-left p-2">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {paginatedInvoices.map((invoice) => (
-                    <tr key={invoice.id} className="border-b hover:bg-muted/50">
-                      <td className="p-2">{new Date(invoice.invoice_date).toLocaleDateString()}</td>
-                      <td className="p-2 font-medium">{invoice.invoice_number}</td>
-                      <td className="p-2">{invoice.customer?.name || "-"}</td>
-                      <td className="p-2 font-medium">₹{invoice.total_amount?.toLocaleString() ?? "0"}</td>
-                      <td className="p-2">
-                        <Select value={invoice.status} onValueChange={value => handleStatusChange(invoice.id, value)}>
-                          <SelectTrigger className="w-28"><SelectValue /></SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="draft">Draft</SelectItem>
-                            <SelectItem value="sent">Sent</SelectItem>
-                            <SelectItem value="paid">Paid</SelectItem>
-                            <SelectItem value="overdue">Overdue</SelectItem>
-                            <SelectItem value="cancelled">Cancelled</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </td>
-                      <td className="p-2">
-                        <div className="flex items-center gap-2">
-                          <Button variant="ghost" size="sm" onClick={() => router.push(`/dashboard/billing/${invoice.id}`)}><Eye className="h-4 w-4" /></Button>
-                          <Button variant="ghost" size="sm" onClick={() => router.push(`/dashboard/billing/${invoice.id}/edit`)}><Edit className="h-4 w-4" /></Button>
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button variant="ghost" size="sm"><Trash2 className="h-4 w-4" /></Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>Delete Invoice</AlertDialogTitle>
-                                <AlertDialogDescription>Are you sure you want to delete this invoice? This action cannot be undone.</AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <AlertDialogAction onClick={() => handleDeleteInvoice(invoice.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Delete</AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
-                        </div>
-                      </td>
+            <div className="space-y-4">
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b">
+                      <th className="text-left p-2">Invoice #</th>
+                      <th className="text-left p-2">Customer</th>
+                      <th className="text-left p-2">Date</th>
+                      <th className="text-left p-2">Amount</th>
+                      <th className="text-left p-2">Status</th>
+                      <th className="text-left p-2">Actions</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {paginatedInvoices.map((invoice) => (
+                      <tr key={invoice.id} className="border-b hover:bg-gray-50">
+                        <td className="p-2 font-medium">{invoice.invoice_number}</td>
+                        <td className="p-2">{invoice.customer?.name}</td>
+                        <td className="p-2">{new Date(invoice.invoice_date).toLocaleDateString()}</td>
+                        <td className="p-2">₹{invoice.total_amount.toLocaleString()}</td>
+                        <td className="p-2">
+                          <div className="flex items-center gap-2">
+                            <div className={`w-2 h-2 rounded-full ${
+                              invoice.status === 'Paid' ? 'bg-green-500' :
+                              invoice.status === 'Overdue' ? 'bg-red-500' :
+                              invoice.status === 'Draft' ? 'bg-gray-500' :
+                              invoice.status === 'Sent' ? 'bg-blue-500' :
+                              invoice.status === 'Cancelled' ? 'bg-gray-400' :
+                              'bg-yellow-500'
+                            }`} />
+                            <Select 
+                              value={invoice.status} 
+                              onValueChange={(newStatus) => handleStatusChange(invoice.id, newStatus)}
+                            >
+                              <SelectTrigger className="w-32">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="Draft">Draft</SelectItem>
+                                <SelectItem value="Sent">Sent</SelectItem>
+                                <SelectItem value="Paid">Paid</SelectItem>
+                                <SelectItem value="Overdue">Overdue</SelectItem>
+                                <SelectItem value="Cancelled">Cancelled</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </td>
+                        <td className="p-2">
+                          <div className="flex gap-2">
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => router.push(`/dashboard/billing/view/${invoice.id}`)}
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => router.push(`/dashboard/billing/edit/${invoice.id}`)}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => handleDeleteInvoice(invoice.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <div className="flex justify-center gap-2 mt-4">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                  >
+                    Previous
+                  </Button>
+                  <span className="flex items-center px-3">
+                    Page {currentPage} of {totalPages}
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                    disabled={currentPage === totalPages}
+                  >
+                    Next
+                  </Button>
+                </div>
+              )}
             </div>
           )}
         </CardContent>
       </Card>
-
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex justify-center gap-2 mt-4">
-          <Button variant="outline" disabled={currentPage === 1} onClick={() => setCurrentPage(p => p - 1)}>Prev</Button>
-          <span className="px-2 py-1">Page {currentPage} of {totalPages}</span>
-          <Button variant="outline" disabled={currentPage === totalPages} onClick={() => setCurrentPage(p => p + 1)}>Next</Button>
-        </div>
-      )}
     </div>
   );
 }
