@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { useToast } from "@/components/ui/use-toast";
 import Breadcrumb from "@/components/breadcrumb";
-import { getInvoices, deleteInvoice, updateInvoice } from "@/app/actions/billing";
+import { getInvoices, deleteInvoice, updateInvoice, syncInvoiceStatuses } from "@/app/actions/billing";
 import { InvoiceWithRelations } from "@/types/database";
 import { Download, Eye, Edit, Trash2, Filter, Search, Plus } from "lucide-react";
 import { exportToCSV, exportToJSON } from "@/lib/utils";
@@ -39,9 +39,22 @@ export default function BillingPage() {
   const loadInvoices = async () => {
     try {
       setLoading(true);
+      
+      // Auto-sync invoice statuses when loading billing page
+      console.log('Auto-syncing invoice statuses...');
+      await syncInvoiceStatuses();
+      
       const result = await getInvoices();
       if (result.success) {
-        setInvoices(result.data || []);
+        const invoices = result.data || [];
+        console.log('Loaded invoices:', invoices.map(inv => ({
+          id: inv.id,
+          number: inv.invoice_number,
+          status: inv.status,
+          total: inv.total_amount,
+          paid: inv.paid_amount
+        })));
+        setInvoices(invoices);
       } else {
         toast({ 
           title: "Error", 
@@ -110,8 +123,11 @@ export default function BillingPage() {
 
   // Stats
   const totalInvoiced = invoices.reduce((sum, inv) => sum + inv.total_amount, 0);
+  const totalPaid = invoices.reduce((sum, inv) => sum + (inv.paid_amount || 0), 0);
+  const totalRemaining = totalInvoiced - totalPaid;
   const paidInvoices = invoices.filter(inv => inv.status === 'Paid');
-  const pendingInvoices = invoices.filter(inv => inv.status === 'Draft' || inv.status === 'Sent');
+  const partiallyPaidInvoices = invoices.filter(inv => inv.status === 'Partially Paid');
+  const pendingInvoices = invoices.filter(inv => inv.status === 'Draft' || inv.status === 'Sent' || inv.status === 'Pending');
   const overdueInvoices = invoices.filter(inv => inv.status === 'Overdue');
 
   // Actions
@@ -167,6 +183,10 @@ export default function BillingPage() {
     exportToJSON(sortedInvoices, "invoices.json");
   };
 
+
+
+
+
   // UI
   return (
     <div className="space-y-6 p-6 pb-20">
@@ -181,7 +201,7 @@ export default function BillingPage() {
         </div>
         <Button onClick={() => router.push("/dashboard/billing/create")}> <Plus className="mr-2 h-4 w-4" /> Create Invoice </Button>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-7 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Invoiced</CardTitle>
@@ -193,11 +213,38 @@ export default function BillingPage() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Paid</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-600">₹{totalPaid.toLocaleString()}</div>
+            <p className="text-xs text-muted-foreground">Collected</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Remaining</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-orange-600">₹{totalRemaining.toLocaleString()}</div>
+            <p className="text-xs text-muted-foreground">Outstanding</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Paid</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">{paidInvoices.length}</div>
             <p className="text-xs text-muted-foreground">₹{paidInvoices.reduce((sum, inv) => sum + inv.total_amount, 0).toLocaleString()}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Partially Paid</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-blue-600">{partiallyPaidInvoices.length}</div>
+            <p className="text-xs text-muted-foreground">₹{partiallyPaidInvoices.reduce((sum, inv) => sum + inv.total_amount, 0).toLocaleString()}</p>
           </CardContent>
         </Card>
         <Card>
@@ -245,6 +292,8 @@ export default function BillingPage() {
                   <SelectItem value="all">All Status</SelectItem>
                   <SelectItem value="Draft">Draft</SelectItem>
                   <SelectItem value="Sent">Sent</SelectItem>
+                  <SelectItem value="Pending">Pending</SelectItem>
+                  <SelectItem value="Partially Paid">Partially Paid</SelectItem>
                   <SelectItem value="Paid">Paid</SelectItem>
                   <SelectItem value="Overdue">Overdue</SelectItem>
                 </SelectContent>
@@ -280,6 +329,9 @@ export default function BillingPage() {
       <Card>
         <CardHeader>
           <CardTitle>Invoices</CardTitle>
+          <p className="text-sm text-muted-foreground">
+            Remaining amount shows outstanding balance for partially paid invoices
+          </p>
         </CardHeader>
         <CardContent>
           {loading ? (
@@ -296,6 +348,7 @@ export default function BillingPage() {
                       <th className="text-left p-2">Customer</th>
                       <th className="text-left p-2">Date</th>
                       <th className="text-left p-2">Amount</th>
+                      <th className="text-left p-2">Remaining</th>
                       <th className="text-left p-2">Status</th>
                       <th className="text-left p-2">Actions</th>
                     </tr>
@@ -308,17 +361,34 @@ export default function BillingPage() {
                         <td className="p-2">{new Date(invoice.invoice_date).toLocaleDateString()}</td>
                         <td className="p-2">₹{invoice.total_amount.toLocaleString()}</td>
                         <td className="p-2">
+                          {(() => {
+                            const paidAmount = invoice.paid_amount || 0;
+                            const totalAmount = invoice.total_amount || 0;
+                            const remainingAmount = totalAmount - paidAmount;
+                            
+                            if (remainingAmount <= 0) {
+                              return <span className="text-green-600 font-medium">Fully Paid</span>;
+                            } else if (paidAmount > 0) {
+                              return <span className="text-orange-600 font-medium">₹{remainingAmount.toLocaleString()}</span>;
+                            } else {
+                              return <span className="text-gray-500">-</span>;
+                            }
+                          })()}
+                        </td>
+                        <td className="p-2">
                           <div className="flex items-center gap-2">
                             <div className={`w-2 h-2 rounded-full ${
                               invoice.status === 'Paid' ? 'bg-green-500' :
+                              invoice.status === 'Partially Paid' ? 'bg-blue-500' :
                               invoice.status === 'Overdue' ? 'bg-red-500' :
                               invoice.status === 'Draft' ? 'bg-gray-500' :
-                              invoice.status === 'Sent' ? 'bg-blue-500' :
+                              invoice.status === 'Sent' ? 'bg-orange-500' :
+                              invoice.status === 'Pending' ? 'bg-yellow-500' :
                               invoice.status === 'Cancelled' ? 'bg-gray-400' :
                               'bg-yellow-500'
                             }`} />
                             <Select 
-                              value={invoice.status} 
+                              value={invoice.status || 'Pending'} 
                               onValueChange={(newStatus) => handleStatusChange(invoice.id, newStatus)}
                             >
                               <SelectTrigger className="w-32">
@@ -327,6 +397,8 @@ export default function BillingPage() {
                               <SelectContent>
                                 <SelectItem value="Draft">Draft</SelectItem>
                                 <SelectItem value="Sent">Sent</SelectItem>
+                                <SelectItem value="Pending">Pending</SelectItem>
+                                <SelectItem value="Partially Paid">Partially Paid</SelectItem>
                                 <SelectItem value="Paid">Paid</SelectItem>
                                 <SelectItem value="Overdue">Overdue</SelectItem>
                                 <SelectItem value="Cancelled">Cancelled</SelectItem>

@@ -41,7 +41,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import Link from "next/link";
-import { Product, Customer, InvoiceItemInsert, InvoiceInsert } from '@/types/database';
+import { Product } from '@/types/database';
 import { getProducts } from '@/app/actions/inventory';
 import { getCustomers } from '@/app/actions/customers';
 import { createInvoice, calculateInvoiceTotals, generateInvoiceNumber } from '@/app/actions/billing';
@@ -77,6 +77,16 @@ export default function CreateInvoicePage() {
       discount_amount: 0,
     },
   ]);
+
+  // Area calculator state
+  const [areaCalculator, setAreaCalculator] = useState({
+    length: '',
+    width: '',
+    tileSize: '',
+    totalArea: 0,
+    boxesNeeded: 0,
+    extraPercentage: 5,
+  });
 
   // Load products and customers
   useEffect(() => {
@@ -194,6 +204,64 @@ export default function CreateInvoicePage() {
       discount_amount: discountAmount,
     };
     setItems(updatedItems);
+  };
+
+  // Area calculator functions
+  const calculateArea = () => {
+    const length = parseFloat(areaCalculator.length);
+    const width = parseFloat(areaCalculator.width);
+    
+    if (length && width) {
+      const totalArea = length * width;
+      const tileSize = areaCalculator.tileSize;
+      let tilesPerBox = 0;
+      
+      // Calculate tiles per box based on tile size
+      switch (tileSize) {
+        case '60x60':
+          tilesPerBox = 4; // 4 tiles per box (60x60cm)
+          break;
+        case '80x80':
+          tilesPerBox = 3; // 3 tiles per box (80x80cm)
+          break;
+        case '30x45':
+          tilesPerBox = 12; // 12 tiles per box (30x45cm)
+          break;
+        default:
+          tilesPerBox = 4; // Default to 60x60
+      }
+      
+      // Calculate tiles needed (including wastage)
+      const tileArea = getTileArea(tileSize);
+      const tilesNeeded = Math.ceil((totalArea / tileArea) * (1 + areaCalculator.extraPercentage / 100));
+      const boxesNeeded = Math.ceil(tilesNeeded / tilesPerBox);
+      
+      setAreaCalculator(prev => ({
+        ...prev,
+        totalArea,
+        boxesNeeded,
+      }));
+    }
+  };
+
+  const getTileArea = (tileSize: string): number => {
+    switch (tileSize) {
+      case '60x60':
+        return 0.36; // 0.6m * 0.6m = 0.36m²
+      case '80x80':
+        return 0.64; // 0.8m * 0.8m = 0.64m²
+      case '30x45':
+        return 0.135; // 0.3m * 0.45m = 0.135m²
+      default:
+        return 0.36; // Default to 60x60
+    }
+  };
+
+  const handleAreaInputChange = (field: string, value: string) => {
+    setAreaCalculator(prev => ({
+      ...prev,
+      [field]: value,
+    }));
   };
 
   const calculateTotals = () => {
@@ -480,15 +548,32 @@ export default function CreateInvoicePage() {
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                       <div>
                         <Label>Room Length (m)</Label>
-                        <Input type="number" placeholder="4.0" />
+                        <Input 
+                          type="number" 
+                          placeholder="4.0" 
+                          value={areaCalculator.length}
+                          onChange={(e) => handleAreaInputChange('length', e.target.value)}
+                          min="0"
+                          step="0.1"
+                        />
                       </div>
                       <div>
                         <Label>Room Width (m)</Label>
-                        <Input type="number" placeholder="3.6" />
+                        <Input 
+                          type="number" 
+                          placeholder="3.6" 
+                          value={areaCalculator.width}
+                          onChange={(e) => handleAreaInputChange('width', e.target.value)}
+                          min="0"
+                          step="0.1"
+                        />
                       </div>
                       <div>
                         <Label>Tile Size</Label>
-                        <Select>
+                        <Select 
+                          value={areaCalculator.tileSize}
+                          onValueChange={(value) => handleAreaInputChange('tileSize', value)}
+                        >
                           <SelectTrigger>
                             <SelectValue placeholder="Select size" />
                           </SelectTrigger>
@@ -500,17 +585,26 @@ export default function CreateInvoicePage() {
                         </Select>
                       </div>
                       <div className="flex items-end">
-                        <Button type="button" className="w-full">Calculate</Button>
+                        <Button 
+                          type="button" 
+                          className="w-full"
+                          onClick={calculateArea}
+                          disabled={!areaCalculator.length || !areaCalculator.width || !areaCalculator.tileSize}
+                        >
+                          Calculate
+                        </Button>
                       </div>
                     </div>
-                    <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-                      <p className="text-sm text-gray-600">
-                        Total Area: <span className="font-medium">14.4 m²</span> |
-                        Boxes Needed:{" "}
-                        <span className="font-medium">10 boxes</span> | Extra:{" "}
-                        <span className="font-medium">5%</span>
-                      </p>
-                    </div>
+                    {areaCalculator.totalArea > 0 && (
+                      <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+                        <p className="text-sm text-gray-600">
+                          Total Area: <span className="font-medium">{areaCalculator.totalArea.toFixed(2)} m²</span> |
+                          Boxes Needed:{" "}
+                          <span className="font-medium">{areaCalculator.boxesNeeded} boxes</span> | Extra:{" "}
+                          <span className="font-medium">{areaCalculator.extraPercentage}%</span>
+                        </p>
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               </div>

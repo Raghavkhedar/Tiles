@@ -380,6 +380,8 @@ export interface Database {
           total_amount: number
           discount_amount: number
           tax_rate: number
+          paid_amount: number
+          balance_amount: number
           payment_terms: string
           status: string
           notes: string | null
@@ -401,6 +403,8 @@ export interface Database {
           total_amount?: number
           discount_amount?: number
           tax_rate?: number
+          paid_amount?: number
+          balance_amount?: number
           payment_terms?: string
           status?: string
           notes?: string | null
@@ -422,6 +426,8 @@ export interface Database {
           total_amount?: number
           discount_amount?: number
           tax_rate?: number
+          paid_amount?: number
+          balance_amount?: number
           payment_terms?: string
           status?: string
           notes?: string | null
@@ -691,7 +697,7 @@ export interface TaxRate {
 
 // Updated extended types for new billing system
 export interface PaymentWithRelations extends Payment {
-  invoice?: Invoice;
+  invoice?: InvoiceWithRelations;
 } 
 
  

@@ -1,3 +1,5 @@
+"use client";
+
 import DashboardNavbar from "@/components/dashboard-navbar";
 import {
   TrendingUp,
@@ -10,9 +12,9 @@ import {
   Package,
   Users,
   FileText,
+  Loader2,
 } from "lucide-react";
-import { redirect } from "next/navigation";
-import { createClient } from "../../../../supabase/server";
+import { useEffect, useState } from "react";
 import {
   Card,
   CardContent,
@@ -32,135 +34,229 @@ import {
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Breadcrumb from "@/components/breadcrumb";
+import { getInvoices } from "@/app/actions/billing";
+import { getCustomers } from "@/app/actions/customers";
+import { getProducts } from "@/app/actions/inventory";
+import { InvoiceWithRelations, Customer, Product } from "@/types/database";
 
-export default async function ReportsPage() {
-  const supabase = await createClient();
+export default function ReportsPage() {
+  const [loading, setLoading] = useState(true);
+  const [invoices, setInvoices] = useState<InvoiceWithRelations[]>([]);
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // Load data on component mount
+  useEffect(() => {
+    loadData();
+  }, []);
 
-  if (!user) {
-    return redirect("/sign-in");
-  }
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      const [invoicesResult, customersResult, productsResult] = await Promise.all([
+        getInvoices(),
+        getCustomers(),
+        getProducts()
+      ]);
 
-  // Mock report data
-  const salesData = {
-    thisMonth: {
-      revenue: 245000,
-      orders: 28,
-      customers: 12,
-      avgOrderValue: 8750,
-    },
-    lastMonth: {
-      revenue: 218000,
-      orders: 24,
-      customers: 10,
-      avgOrderValue: 9083,
-    },
-    growth: {
-      revenue: 12.4,
-      orders: 16.7,
-      customers: 20.0,
-      avgOrderValue: -3.7,
-    },
+      if (invoicesResult.success) {
+        setInvoices(invoicesResult.data || []);
+      }
+      if (customersResult.success) {
+        setCustomers(customersResult.data || []);
+      }
+      if (productsResult.success) {
+        setProducts(productsResult.data || []);
+      }
+    } catch (error) {
+      console.error('Error loading data:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const topProducts = [
-    {
-      name: "Ceramic Floor Tiles - White",
-      sales: 45000,
-      quantity: 120,
-      percentage: 18.4,
-    },
-    {
-      name: "Vitrified Tiles - Marble Finish",
-      sales: 38000,
-      quantity: 85,
-      percentage: 15.5,
-    },
-    {
-      name: "Wall Tiles - Glossy Blue",
-      sales: 32000,
-      quantity: 95,
-      percentage: 13.1,
-    },
-    {
-      name: "Granite Tiles - Black Pearl",
-      sales: 28000,
-      quantity: 65,
-      percentage: 11.4,
-    },
-    {
-      name: "Designer Wall Tiles",
-      sales: 25000,
-      quantity: 78,
-      percentage: 10.2,
-    },
-  ];
+  // Calculate real report data
+  const calculateSalesData = () => {
+    const now = new Date();
+    const thisMonth = now.getMonth();
+    const thisYear = now.getFullYear();
+    const lastMonth = thisMonth === 0 ? 11 : thisMonth - 1;
+    const lastYear = thisMonth === 0 ? thisYear - 1 : thisYear;
 
-  const topCustomers = [
-    {
-      name: "Elite Builders",
-      purchases: 85000,
-      orders: 8,
-      lastOrder: "2024-01-17",
-    },
-    {
-      name: "Sharma Construction",
-      purchases: 72000,
-      orders: 6,
-      lastOrder: "2024-01-15",
-    },
-    {
-      name: "Modern Interiors",
-      purchases: 58000,
-      orders: 5,
-      lastOrder: "2024-01-16",
-    },
-    {
-      name: "Home Decor Solutions",
-      purchases: 45000,
-      orders: 4,
-      lastOrder: "2024-01-10",
-    },
-    {
-      name: "Premium Builders",
-      purchases: 38000,
-      orders: 3,
-      lastOrder: "2024-01-12",
-    },
-  ];
+    const thisMonthInvoices = invoices.filter(invoice => {
+      const invoiceDate = new Date(invoice.invoice_date);
+      return invoiceDate.getMonth() === thisMonth && invoiceDate.getFullYear() === thisYear;
+    });
 
-  const gstReport = [
-    {
-      month: "January 2024",
-      taxableAmount: 207627,
-      cgst: 18687,
-      sgst: 18687,
-      igst: 0,
-      totalGst: 37374,
-      totalAmount: 245000,
-    },
-    {
-      month: "December 2023",
-      taxableAmount: 184746,
-      cgst: 16627,
-      sgst: 16627,
-      igst: 0,
-      totalGst: 33254,
-      totalAmount: 218000,
-    },
-    {
-      month: "November 2023",
-      taxableAmount: 169492,
-      cgst: 15254,
-      sgst: 15254,
-      igst: 0,
-      totalGst: 30508,
-      totalAmount: 200000,
-    },
-  ];
+    const lastMonthInvoices = invoices.filter(invoice => {
+      const invoiceDate = new Date(invoice.invoice_date);
+      return invoiceDate.getMonth() === lastMonth && invoiceDate.getFullYear() === lastYear;
+    });
+
+    const thisMonthRevenue = thisMonthInvoices.reduce((sum, invoice) => sum + (invoice.total_amount || 0), 0);
+    const lastMonthRevenue = lastMonthInvoices.reduce((sum, invoice) => sum + (invoice.total_amount || 0), 0);
+
+    const thisMonthCustomers = new Set(thisMonthInvoices.map(invoice => invoice.customer_id)).size;
+    const lastMonthCustomers = new Set(lastMonthInvoices.map(invoice => invoice.customer_id)).size;
+
+    const revenueGrowth = lastMonthRevenue > 0 ? ((thisMonthRevenue - lastMonthRevenue) / lastMonthRevenue) * 100 : 0;
+    const ordersGrowth = lastMonthInvoices.length > 0 ? ((thisMonthInvoices.length - lastMonthInvoices.length) / lastMonthInvoices.length) * 100 : 0;
+    const customersGrowth = lastMonthCustomers > 0 ? ((thisMonthCustomers - lastMonthCustomers) / lastMonthCustomers) * 100 : 0;
+
+    return {
+      thisMonth: {
+        revenue: thisMonthRevenue,
+        orders: thisMonthInvoices.length,
+        customers: thisMonthCustomers,
+        avgOrderValue: thisMonthInvoices.length > 0 ? thisMonthRevenue / thisMonthInvoices.length : 0,
+      },
+      lastMonth: {
+        revenue: lastMonthRevenue,
+        orders: lastMonthInvoices.length,
+        customers: lastMonthCustomers,
+        avgOrderValue: lastMonthInvoices.length > 0 ? lastMonthRevenue / lastMonthInvoices.length : 0,
+      },
+      growth: {
+        revenue: revenueGrowth,
+        orders: ordersGrowth,
+        customers: customersGrowth,
+        avgOrderValue: 0, // Calculate if needed
+      },
+    };
+  };
+
+  const salesData = calculateSalesData();
+
+  const calculateTopProducts = () => {
+    const productSales: { [key: string]: { name: string; sales: number; quantity: number } } = {};
+
+    invoices.forEach(invoice => {
+      invoice.items?.forEach(item => {
+        const productId = item.product_id;
+        if (productId) {
+          if (!productSales[productId]) {
+            productSales[productId] = {
+              name: item.product_name,
+              sales: 0,
+              quantity: 0,
+            };
+          }
+          productSales[productId].sales += item.total_price;
+          productSales[productId].quantity += item.quantity;
+        }
+      });
+    });
+
+    const totalSales = Object.values(productSales).reduce((sum, product) => sum + product.sales, 0);
+
+    return Object.values(productSales)
+      .map(product => ({
+        ...product,
+        percentage: totalSales > 0 ? (product.sales / totalSales) * 100 : 0,
+      }))
+      .sort((a, b) => b.sales - a.sales)
+      .slice(0, 5);
+  };
+
+  const topProducts = calculateTopProducts();
+
+  const calculateTopCustomers = () => {
+    const customerData: { [key: string]: { name: string; purchases: number; orders: number; lastOrder: string } } = {};
+
+    invoices.forEach(invoice => {
+      const customerId = invoice.customer_id;
+      const customerName = invoice.customer?.name || 'Unknown Customer';
+      
+      if (!customerData[customerId]) {
+        customerData[customerId] = {
+          name: customerName,
+          purchases: 0,
+          orders: 0,
+          lastOrder: invoice.invoice_date,
+        };
+      }
+      
+      customerData[customerId].purchases += invoice.total_amount;
+      customerData[customerId].orders += 1;
+      
+      // Update last order date if this invoice is more recent
+      if (new Date(invoice.invoice_date) > new Date(customerData[customerId].lastOrder)) {
+        customerData[customerId].lastOrder = invoice.invoice_date;
+      }
+    });
+
+    return Object.values(customerData)
+      .sort((a, b) => b.purchases - a.purchases)
+      .slice(0, 5);
+  };
+
+  const topCustomers = calculateTopCustomers();
+
+  const calculateGSTReport = () => {
+    const monthlyData: { [key: string]: { 
+      month: string; 
+      taxableAmount: number; 
+      cgst: number; 
+      sgst: number; 
+      igst: number; 
+      totalGst: number; 
+      totalAmount: number; 
+    } } = {};
+
+    invoices.forEach(invoice => {
+      const invoiceDate = new Date(invoice.invoice_date);
+      const monthKey = `${invoiceDate.getFullYear()}-${String(invoiceDate.getMonth() + 1).padStart(2, '0')}`;
+      const monthName = invoiceDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+      
+      if (!monthlyData[monthKey]) {
+        monthlyData[monthKey] = {
+          month: monthName,
+          taxableAmount: 0,
+          cgst: 0,
+          sgst: 0,
+          igst: 0,
+          totalGst: 0,
+          totalAmount: 0,
+        };
+      }
+      
+      const taxableAmount = invoice.total_amount - (invoice.cgst_amount + invoice.sgst_amount + invoice.igst_amount);
+      monthlyData[monthKey].taxableAmount += taxableAmount;
+      monthlyData[monthKey].cgst += invoice.cgst_amount;
+      monthlyData[monthKey].sgst += invoice.sgst_amount;
+      monthlyData[monthKey].igst += invoice.igst_amount;
+      monthlyData[monthKey].totalGst += (invoice.cgst_amount + invoice.sgst_amount + invoice.igst_amount);
+      monthlyData[monthKey].totalAmount += invoice.total_amount;
+    });
+
+    return Object.values(monthlyData)
+      .sort((a, b) => {
+        const [aYear, aMonth] = a.month.split(' ');
+        const [bYear, bMonth] = b.month.split(' ');
+        return new Date(`${aMonth} 1, ${aYear}`).getTime() - new Date(`${bMonth} 1, ${bYear}`).getTime();
+      })
+      .slice(-3); // Last 3 months
+  };
+
+  const gstReport = calculateGSTReport();
+
+  if (loading) {
+    return (
+      <>
+        <DashboardNavbar />
+        <main className="w-full bg-gray-50 min-h-screen pb-24">
+          <div className="container mx-auto px-4 py-8">
+            <div className="flex justify-center items-center min-h-[400px]">
+              <div className="flex items-center gap-2">
+                <Loader2 className="w-6 h-6 animate-spin" />
+                <span>Loading reports...</span>
+              </div>
+            </div>
+          </div>
+        </main>
+      </>
+    );
+  }
 
   return (
     <>
