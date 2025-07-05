@@ -100,7 +100,7 @@ export default async function SettingsPage() {
                     <span className="text-sm text-gray-600">GST Number</span>
                     <span className="text-sm font-medium">Not Set</span>
                   </div>
-                  <Button variant="outline" className="w-full mt-4">
+                  <Button variant="outline" className="w-full mt-4" onClick={() => window.location.href = '/dashboard/settings/business'}>
                     Configure Business
                   </Button>
                 </div>

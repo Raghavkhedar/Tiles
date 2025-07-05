@@ -13,6 +13,7 @@ import { InvoiceWithRelations } from "@/types/database";
 import { ArrowLeft, Edit, Download, Printer, Eye } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { updateInvoice } from "@/app/actions/billing";
+import { downloadInvoicePDF, getBusinessSettingsForPDF } from "@/lib/pdf-generator";
 import Link from "next/link";
 
 export default function ViewInvoicePage() {
@@ -67,9 +68,22 @@ export default function ViewInvoicePage() {
     window.print();
   };
 
-  const handleDownload = () => {
-    // TODO: Implement PDF download
-    toast({ title: "Info", description: "PDF download feature coming soon" });
+  const handleDownload = async () => {
+    if (!invoice) return;
+    
+    try {
+      // Get business settings for PDF header
+      const businessOptions = await getBusinessSettingsForPDF();
+      
+      await downloadInvoicePDF(invoice, businessOptions);
+      toast({ title: "Success", description: "Invoice PDF downloaded successfully" });
+    } catch (error) {
+      toast({ 
+        title: "Error", 
+        description: "Failed to download PDF", 
+        variant: "destructive" 
+      });
+    }
   };
 
   if (loading) {

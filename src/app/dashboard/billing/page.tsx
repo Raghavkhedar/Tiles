@@ -14,6 +14,7 @@ import { getInvoices, deleteInvoice, updateInvoice } from "@/app/actions/billing
 import { InvoiceWithRelations } from "@/types/database";
 import { Download, Eye, Edit, Trash2, Filter, Search, Plus } from "lucide-react";
 import { exportToCSV, exportToJSON } from "@/lib/utils";
+import { downloadInvoicePDF, getBusinessSettingsForPDF } from "@/lib/pdf-generator";
 
 const PAGE_SIZE = 10;
 
@@ -348,6 +349,25 @@ export default function BillingPage() {
                               onClick={() => router.push(`/dashboard/billing/edit/${invoice.id}`)}
                             >
                               <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={async () => {
+                                try {
+                                  const businessOptions = await getBusinessSettingsForPDF();
+                                  await downloadInvoicePDF(invoice, businessOptions);
+                                  toast({ title: "Success", description: "Invoice PDF downloaded" });
+                                } catch (error) {
+                                  toast({ 
+                                    title: "Error", 
+                                    description: "Failed to download PDF", 
+                                    variant: "destructive" 
+                                  });
+                                }
+                              }}
+                            >
+                              <Download className="h-4 w-4" />
                             </Button>
                             <Button 
                               variant="ghost" 

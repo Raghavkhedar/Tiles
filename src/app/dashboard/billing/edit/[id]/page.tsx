@@ -15,7 +15,8 @@ import { getInvoice, updateInvoice } from "@/app/actions/billing";
 import { getCustomers } from "@/app/actions/customers";
 import { getProducts } from "@/app/actions/inventory";
 import { InvoiceWithRelations, Customer, Product, InvoiceItemInsert } from "@/types/database";
-import { ArrowLeft, Plus, Trash2 } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, Download } from "lucide-react";
+import { downloadInvoicePDF, getBusinessSettingsForPDF } from "@/lib/pdf-generator";
 import Link from "next/link";
 
 interface InvoiceFormData {
@@ -572,6 +573,29 @@ export default function EditInvoicePage() {
                     <div className="space-y-2">
                       <Button type="submit" className="w-full" disabled={saving}>
                         {saving ? "Updating..." : "Update Invoice"}
+                      </Button>
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        className="w-full" 
+                        onClick={async () => {
+                          if (invoice) {
+                            try {
+                              const businessOptions = await getBusinessSettingsForPDF();
+                              await downloadInvoicePDF(invoice, businessOptions);
+                              toast({ title: "Success", description: "Invoice PDF downloaded" });
+                            } catch (error) {
+                              toast({ 
+                                title: "Error", 
+                                description: "Failed to download PDF", 
+                                variant: "destructive" 
+                              });
+                            }
+                          }
+                        }}
+                      >
+                        <Download className="w-4 h-4 mr-2" />
+                        Download PDF
                       </Button>
                       <Button type="button" variant="outline" className="w-full" onClick={() => router.push('/dashboard/billing')}>
                         Cancel
