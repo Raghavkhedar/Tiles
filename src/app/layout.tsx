@@ -110,7 +110,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className={inter.className}>
+      <body className={inter.className + " bg-background"}>
         <UserProvider>
             {/* Accessibility Components */}
             <KeyboardNavigation />

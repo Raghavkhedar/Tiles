@@ -15,6 +15,7 @@ import { InvoiceWithRelations } from "@/types/database";
 import { Download, Eye, Edit, Trash2, Filter, Search, Plus } from "lucide-react";
 import { exportToCSV, exportToJSON } from "@/lib/utils";
 import { downloadInvoicePDF, getBusinessSettingsForPDF } from "@/lib/pdf-generator";
+import DashboardNavbar from "@/components/dashboard-navbar";
 
 const PAGE_SIZE = 10;
 
@@ -189,9 +190,12 @@ export default function BillingPage() {
 
   // UI
   return (
-    <div className="space-y-6 p-6 pb-20">
-      {/* Breadcrumb */}
-      <Breadcrumb items={[{ label: "Billing & Invoices" }]} />
+    <>
+      <DashboardNavbar />
+      <main className="w-full bg-background min-h-screen">
+        <div className="container mx-auto px-4 py-8">
+          {/* Breadcrumb */}
+          <Breadcrumb items={[{ label: "Billing & Invoices" }]} />
 
       {/* Header & Stats */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -484,6 +488,8 @@ export default function BillingPage() {
           )}
         </CardContent>
       </Card>
-    </div>
+        </div>
+      </main>
+    </>
   );
 }

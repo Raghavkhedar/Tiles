@@ -4,35 +4,35 @@
 
 @layer base {
   :root {
-    --background: #f6f8fa; /* very light grey-blue */
-    --foreground: #23272f; /* deep muted blue-grey for text */
-    --card: #ffffff; /* white for cards */
-    --card-foreground: #23272f;
-    --popover: #ffffff;
-    --popover-foreground: #23272f;
-    --primary: #4b6fa5; /* muted blue */
-    --primary-foreground: #ffffff;
-    --secondary: #e3e8ee; /* soft light grey-blue */
-    --secondary-foreground: #23272f;
-    --muted: #e3e8ee; /* same as secondary for subtlety */
-    --muted-foreground: #6b7280; /* muted grey for muted text */
-    --accent: #b7c6e2; /* pale blue accent */
-    --accent-foreground: #23272f;
-    --destructive: #e57373; /* muted red for errors */
-    --destructive-foreground: #ffffff;
-    --border: #d1d5db; /* light grey border */
-    --input: #e3e8ee;
-    --ring: #4b6fa5;
+    --background: #DDDBF1; /* Lavender - main background */
+    --foreground: #383F51; /* Charcoal - main text */
+    --card: #FFFFFF; /* White - card background */
+    --card-foreground: #383F51; /* Charcoal - text on cards */
+    --popover: #FFFFFF;
+    --popover-foreground: #383F51;
+    --primary: #3C4F76; /* YinMn Blue - primary accent */
+    --primary-foreground: #FFFFFF;
+    --secondary: #D1BEB0; /* Dun - secondary accent */
+    --secondary-foreground: #383F51;
+    --muted: #AB9F9D; /* Rose quartz - muted accent */
+    --muted-foreground: #383F51;
+    --accent: #3C4F76; /* YinMn Blue as accent */
+    --accent-foreground: #FFFFFF;
+    --destructive: #AB9F9D; /* Rose quartz as destructive */
+    --destructive-foreground: #383F51;
+    --border: #3C4F76; /* YinMn Blue for borders */
+    --input: #D1BEB0; /* Dun for input backgrounds */
+    --ring: #3C4F76; /* YinMn Blue for focus ring */
     --radius: 0.5rem;
     --animation-duration: 200ms;
-    --status-success: #4caf8e; /* muted green */
-    --status-success-foreground: #ffffff;
-    --status-warning: #e6b800; /* muted yellow */
-    --status-warning-foreground: #23272f;
-    --status-error: #e57373; /* muted red */
-    --status-error-foreground: #ffffff;
-    --status-info: #4b6fa5; /* muted blue */
-    --status-info-foreground: #ffffff;
+    --status-success: #3C4F76; /* YinMn Blue for success */
+    --status-success-foreground: #FFFFFF;
+    --status-warning: #D1BEB0; /* Dun for warning */
+    --status-warning-foreground: #383F51;
+    --status-error: #AB9F9D; /* Rose quartz for error */
+    --status-error-foreground: #383F51;
+    --status-info: #3C4F76; /* YinMn Blue for info */
+    --status-info-foreground: #FFFFFF;
   }
 
   /* Accessibility Features */
@@ -138,6 +138,7 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    background: var(--background) !important;
+    color: var(--foreground);
   }
 }

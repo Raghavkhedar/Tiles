@@ -51,14 +51,14 @@ function DashboardSkeleton() {
       {/* Stats Cards Skeleton */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
         {[...Array(4)].map((_, i) => (
-          <Card key={i} className="min-h-[120px] sm:min-h-[140px]">
+          <Card key={i} className="min-h-[120px] sm:min-h-[140px] bg-gradient-to-br from-white/80 to-white/50 backdrop-blur-sm border border-navy-200/20 shadow-lg hover:shadow-xl transition-all duration-300">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <div className="h-4 bg-gray-200 rounded w-20 sm:w-24 animate-pulse"></div>
-              <div className="h-4 w-4 bg-gray-200 rounded animate-pulse"></div>
+              <div className="h-4 bg-navy-200/50 rounded w-20 sm:w-24 animate-pulse"></div>
+              <div className="h-4 w-4 bg-navy-200/50 rounded-full animate-pulse"></div>
             </CardHeader>
             <CardContent>
-              <div className="h-6 sm:h-8 bg-gray-200 rounded w-16 sm:w-20 animate-pulse mb-2"></div>
-              <div className="h-3 bg-gray-200 rounded w-24 sm:w-32 animate-pulse"></div>
+              <div className="h-6 sm:h-8 bg-navy-200/50 rounded w-16 sm:w-20 animate-pulse mb-2"></div>
+              <div className="h-3 bg-navy-200/50 rounded w-24 sm:w-32 animate-pulse"></div>
             </CardContent>
           </Card>
         ))}
@@ -67,23 +67,23 @@ function DashboardSkeleton() {
       {/* Content Grid Skeleton */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
         {[...Array(3)].map((_, i) => (
-          <Card key={i}>
+          <Card key={i} className="bg-gradient-to-br from-white/80 to-white/50 backdrop-blur-sm border border-navy-200/20 shadow-lg hover:shadow-xl transition-all duration-300">
             <CardHeader>
-              <div className="h-6 bg-gray-200 rounded w-28 sm:w-32 animate-pulse mb-2"></div>
-              <div className="h-4 bg-gray-200 rounded w-40 sm:w-48 animate-pulse"></div>
+              <div className="h-6 bg-navy-200/50 rounded w-28 sm:w-32 animate-pulse mb-2"></div>
+              <div className="h-4 bg-navy-200/50 rounded w-40 sm:w-48 animate-pulse"></div>
             </CardHeader>
             <CardContent>
               <div className="space-y-3 sm:space-y-4">
                 {[...Array(4)].map((_, j) => (
                   <div key={j} className="flex items-center justify-between">
                     <div className="flex items-center space-x-2 sm:space-x-3">
-                      <div className="w-2 h-2 bg-gray-200 rounded-full animate-pulse"></div>
+                      <div className="w-2 h-2 bg-navy-200/50 rounded-full animate-pulse"></div>
                       <div>
-                        <div className="h-4 bg-gray-200 rounded w-20 sm:w-24 animate-pulse mb-1"></div>
-                        <div className="h-3 bg-gray-200 rounded w-28 sm:w-32 animate-pulse"></div>
+                        <div className="h-4 bg-slate-200/70 rounded w-20 sm:w-24 animate-pulse mb-1"></div>
+                        <div className="h-3 bg-slate-200/70 rounded w-28 sm:w-32 animate-pulse"></div>
                       </div>
                     </div>
-                    <div className="h-4 bg-gray-200 rounded w-12 sm:w-16 animate-pulse"></div>
+                    <div className="h-4 bg-slate-200/70 rounded w-12 sm:w-16 animate-pulse"></div>
                   </div>
                 ))}
               </div>
@@ -98,12 +98,12 @@ function DashboardSkeleton() {
 // Error component for dashboard sections
 function DashboardError({ error }: { error: string }) {
   return (
-    <div className="flex items-center justify-center min-h-[300px] sm:min-h-[400px] px-4">
+    <div className="flex items-center justify-center min-h-[300px] sm:min-h-[400px] px-4 bg-gradient-to-br from-white/80 to-white/50 backdrop-blur-sm rounded-lg border border-red-200/20 shadow-lg">
       <div className="text-center">
         <div className="text-4xl sm:text-6xl mb-4">⚠️</div>
-        <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">Dashboard Error</h2>
-        <p className="text-sm sm:text-base text-gray-600 mb-4 px-4">{error}</p>
-        <Button onClick={() => window.location.reload()} className="w-full sm:w-auto">
+        <h2 className="text-xl sm:text-2xl font-bold text-slate-900 mb-2">Dashboard Error</h2>
+        <p className="text-sm sm:text-base text-slate-600 mb-4 px-4">{error}</p>
+        <Button onClick={() => window.location.reload()} className="w-full sm:w-auto bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white shadow-md hover:shadow-lg transition-all duration-200">
           <Loader2 className="w-4 h-4 mr-2" />
           Retry
         </Button>
@@ -258,26 +258,26 @@ async function DashboardContent() {
     };
 
     return (
-      <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-8">
+      <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-8 bg-gradient-to-b from-navy-50/30 to-white/90 min-h-screen">
         {/* Header Section */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 sm:mb-8">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">
+            <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-navy-900 to-navy-600 bg-clip-text text-transparent mb-2">
               Dashboard
             </h1>
-            <p className="text-sm sm:text-base text-muted-foreground">
+            <p className="text-sm sm:text-base text-navy-600">
               Welcome back! Here's what's happening with your tile business.
             </p>
           </div>
           <div className="flex items-center gap-2 mt-4 md:mt-0">
-            <Badge variant="outline" className="flex items-center gap-1 text-xs sm:text-sm">
+            <Badge variant="outline" className="flex items-center gap-1 text-xs sm:text-sm bg-white/60 backdrop-blur-sm border-navy-200/40 shadow-sm">
               <WifiOff className="w-3 h-3" />
               <span className="hidden sm:inline">Offline Ready</span>
               <span className="sm:hidden">Offline</span>
             </Badge>
             <Badge
               variant="outline"
-              className="flex items-center gap-1 text-green-600 text-xs sm:text-sm"
+              className="flex items-center gap-1 text-green-600 text-xs sm:text-sm bg-white/60 backdrop-blur-sm border-green-200/40 shadow-sm"
             >
               <CheckCircle className="w-3 h-3" />
               <span className="hidden sm:inline">Synced</span>
@@ -288,18 +288,20 @@ async function DashboardContent() {
 
         {/* Key Metrics */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mb-6 sm:mb-8">
-          <Card className="min-h-[120px] sm:min-h-[140px]">
+          <Card className="min-h-[120px] sm:min-h-[140px] bg-gradient-to-br from-white/80 to-white/50 backdrop-blur-sm border border-navy-200/20 shadow-lg hover:shadow-xl transition-all duration-300">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-xs sm:text-sm font-medium">
+              <CardTitle className="text-xs sm:text-sm font-medium text-navy-700">
                 Monthly Revenue
               </CardTitle>
-              <IndianRupee className="h-4 w-4 text-green-600" />
+              <div className="p-2 bg-gradient-to-br from-green-100/50 to-green-50/30 rounded-full">
+                <IndianRupee className="h-4 w-4 text-green-600" />
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="text-lg sm:text-2xl font-bold text-green-600">
+              <div className="text-lg sm:text-2xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
                 ₹{stats.monthlyRevenue.toLocaleString()}
               </div>
-              <div className="flex items-center text-xs text-muted-foreground">
+              <div className="flex items-center text-xs text-slate-600">
                 {stats.revenueGrowth >= 0 ? (
                   <ArrowUpRight className="h-3 w-3 text-green-600 mr-1" />
                 ) : (
@@ -311,50 +313,58 @@ async function DashboardContent() {
             </CardContent>
           </Card>
 
-          <Card className="min-h-[120px] sm:min-h-[140px]">
+          <Card className="min-h-[120px] sm:min-h-[140px] bg-white/50 backdrop-blur-sm border border-slate-200/60 shadow-lg hover:shadow-xl transition-all duration-200">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-xs sm:text-sm font-medium">
+              <CardTitle className="text-xs sm:text-sm font-medium text-slate-700">
                 Gross Profit
               </CardTitle>
-              <DollarSign className="h-4 w-4 text-blue-600" />
+              <div className="p-2 bg-blue-100/50 rounded-full">
+                <DollarSign className="h-4 w-4 text-blue-600" />
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="text-lg sm:text-2xl font-bold text-blue-600">
+              <div className="text-lg sm:text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
                 ₹{stats.grossProfit.toLocaleString()}
               </div>
-              <div className="text-xs text-muted-foreground">
+              <div className="text-xs text-navy-600">
                 {stats.profitMargin.toFixed(1)}% margin
               </div>
             </CardContent>
           </Card>
 
-          <Card className="min-h-[120px] sm:min-h-[140px]">
+          <Card className="min-h-[120px] sm:min-h-[140px] bg-white/50 backdrop-blur-sm border border-slate-200/60 shadow-lg hover:shadow-xl transition-all duration-200">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-xs sm:text-sm font-medium">
+              <CardTitle className="text-xs sm:text-sm font-medium text-slate-700">
                 Outstanding
               </CardTitle>
-              <CreditCard className="h-4 w-4 text-orange-500" />
+              <div className="p-2 bg-orange-100/50 rounded-full">
+                <CreditCard className="h-4 w-4 text-orange-500" />
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="text-lg sm:text-2xl font-bold text-orange-600">
+              <div className="text-lg sm:text-2xl font-bold bg-gradient-to-r from-orange-500 to-amber-500 bg-clip-text text-transparent">
                 ₹{stats.outstandingAmount.toLocaleString()}
               </div>
-              <div className="text-xs text-muted-foreground">
+              <div className="text-xs text-slate-600">
                 {outstandingInvoices.length} pending
               </div>
             </CardContent>
           </Card>
 
-          <Card className="min-h-[120px] sm:min-h-[140px]">
+          <Card className="min-h-[120px] sm:min-h-[140px] bg-white/50 backdrop-blur-sm border border-slate-200/60 shadow-lg hover:shadow-xl transition-all duration-200">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-xs sm:text-sm font-medium">
+              <CardTitle className="text-xs sm:text-sm font-medium text-slate-700">
                 Products
               </CardTitle>
-              <Package className="h-4 w-4 text-muted-foreground" />
+              <div className="p-2 bg-slate-100/50 rounded-full">
+                <Package className="h-4 w-4 text-slate-600" />
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="text-lg sm:text-2xl font-bold">{stats.totalProducts}</div>
-              <div className="text-xs text-muted-foreground">
+              <div className="text-lg sm:text-2xl font-bold bg-gradient-to-r from-slate-700 to-slate-900 bg-clip-text text-transparent">
+                {stats.totalProducts}
+              </div>
+              <div className="text-xs text-slate-600">
                 {stats.lowStockItems} need restock
               </div>
             </CardContent>
@@ -363,63 +373,77 @@ async function DashboardContent() {
 
         {/* Secondary Metrics */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mb-6 sm:mb-8">
-          <Card className="min-h-[100px] sm:min-h-[120px]">
+          <Card className="min-h-[100px] sm:min-h-[120px] bg-gradient-to-br from-white/80 to-white/50 backdrop-blur-sm border border-navy-200/20 shadow-lg hover:shadow-xl transition-all duration-300">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-xs sm:text-sm font-medium">
+              <CardTitle className="text-xs sm:text-sm font-medium text-slate-700">
                 Low Stock
               </CardTitle>
-              <AlertTriangle className="h-4 w-4 text-orange-500" />
+              <div className="p-2 bg-orange-100/50 rounded-full">
+                <AlertTriangle className="h-4 w-4 text-orange-500" />
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="text-lg sm:text-2xl font-bold text-orange-600">
+              <div className="text-lg sm:text-2xl font-bold bg-gradient-to-r from-orange-500 to-amber-500 bg-clip-text text-transparent">
                 {stats.lowStockItems}
               </div>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-slate-600">
                 Need restocking
               </p>
             </CardContent>
           </Card>
 
-          <Card className="min-h-[100px] sm:min-h-[120px]">
+          <Card className="min-h-[100px] sm:min-h-[120px] bg-white/50 backdrop-blur-sm border border-slate-200/60 shadow-lg hover:shadow-xl transition-all duration-200">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-xs sm:text-sm font-medium">
+              <CardTitle className="text-xs sm:text-sm font-medium text-slate-700">
                 Orders
               </CardTitle>
-              <FileText className="h-4 w-4 text-muted-foreground" />
+              <div className="p-2 bg-slate-100/50 rounded-full">
+                <FileText className="h-4 w-4 text-slate-600" />
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="text-lg sm:text-2xl font-bold">{stats.pendingOrders}</div>
-              <p className="text-xs text-muted-foreground">
+              <div className="text-lg sm:text-2xl font-bold bg-gradient-to-r from-slate-700 to-slate-900 bg-clip-text text-transparent">
+                {stats.pendingOrders}
+              </div>
+              <p className="text-xs text-slate-600">
                 To process
               </p>
             </CardContent>
           </Card>
 
-          <Card className="min-h-[100px] sm:min-h-[120px]">
+          <Card className="min-h-[100px] sm:min-h-[120px] bg-white/50 backdrop-blur-sm border border-slate-200/60 shadow-lg hover:shadow-xl transition-all duration-200">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-xs sm:text-sm font-medium">
+              <CardTitle className="text-xs sm:text-sm font-medium text-slate-700">
                 Deliveries
               </CardTitle>
-              <Truck className="h-4 w-4 text-muted-foreground" />
+              <div className="p-2 bg-purple-100/50 rounded-full">
+                <Truck className="h-4 w-4 text-purple-600" />
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="text-lg sm:text-2xl font-bold">{stats.pendingDeliveries}</div>
-              <p className="text-xs text-muted-foreground">
+              <div className="text-lg sm:text-2xl font-bold bg-gradient-to-r from-purple-600 to-fuchsia-600 bg-clip-text text-transparent">
+                {stats.pendingDeliveries}
+              </div>
+              <p className="text-xs text-slate-600">
                 In progress
               </p>
             </CardContent>
           </Card>
 
-          <Card className="min-h-[100px] sm:min-h-[120px]">
+          <Card className="min-h-[100px] sm:min-h-[120px] bg-white/50 backdrop-blur-sm border border-slate-200/60 shadow-lg hover:shadow-xl transition-all duration-200">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-xs sm:text-sm font-medium">
+              <CardTitle className="text-xs sm:text-sm font-medium text-slate-700">
                 Customers
               </CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
+              <div className="p-2 bg-cyan-100/50 rounded-full">
+                <Users className="h-4 w-4 text-cyan-600" />
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="text-lg sm:text-2xl font-bold">{stats.totalCustomers}</div>
-              <p className="text-xs text-muted-foreground">
+              <div className="text-lg sm:text-2xl font-bold bg-gradient-to-r from-cyan-600 to-sky-600 bg-clip-text text-transparent">
+                {stats.totalCustomers}
+              </div>
+              <p className="text-xs text-slate-600">
                 Active
               </p>
             </CardContent>
@@ -429,124 +453,100 @@ async function DashboardContent() {
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8 mb-6 sm:mb-8">
           {/* Quick Actions */}
-          <Card>
+          <Card className="bg-gradient-to-br from-white/80 to-white/50 backdrop-blur-sm border border-navy-200/20 shadow-lg hover:shadow-xl transition-all duration-300">
             <CardHeader>
-              <CardTitle className="text-base sm:text-lg">Quick Actions</CardTitle>
-              <CardDescription className="text-sm">
+              <CardTitle className="text-base sm:text-lg bg-gradient-to-r from-navy-900 to-navy-600 bg-clip-text text-transparent">Quick Actions</CardTitle>
+              <CardDescription className="text-sm text-navy-600">
                 Common tasks for your tile business
               </CardDescription>
             </CardHeader>
             <CardContent className="grid grid-cols-2 gap-3 sm:gap-4">
-              {/* Orders + Suppliers */}
               <Link href="/dashboard/purchase-orders">
-                <Button variant="outline" className="w-full h-16 sm:h-20 flex flex-col gap-1 sm:gap-2 text-xs sm:text-sm">
-                  <ShoppingCart className="h-5 w-5 sm:h-6 sm:w-6" />
-                  <span>Orders</span>
+                <Button variant="outline" className="w-full h-16 sm:h-20 flex flex-col gap-1 sm:gap-2 text-xs sm:text-sm bg-white/60 backdrop-blur-sm border border-navy-200/40 hover:bg-navy-50/50 hover:border-navy-300/40 transition-all duration-300">
+                  <ShoppingCart className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600" />
+                  <span className="text-navy-700">Orders</span>
                 </Button>
               </Link>
               <Link href="/dashboard/suppliers">
-                <Button variant="outline" className="w-full h-16 sm:h-20 flex flex-col gap-1 sm:gap-2 text-xs sm:text-sm">
-                  <Building className="h-5 w-5 sm:h-6 sm:w-6" />
-                  <span>Suppliers</span>
+                <Button variant="outline" className="w-full h-16 sm:h-20 flex flex-col gap-1 sm:gap-2 text-xs sm:text-sm bg-white/60 backdrop-blur-sm border border-navy-200/40 hover:bg-navy-50/50 hover:border-navy-300/40 transition-all duration-300">
+                  <Building className="h-5 w-5 sm:h-6 sm:w-6 text-emerald-600" />
+                  <span className="text-navy-700">Suppliers</span>
                 </Button>
               </Link>
-              {/* Customers + Invoice */}
               <Link href="/dashboard/customers">
-                <Button variant="outline" className="w-full h-16 sm:h-20 flex flex-col gap-1 sm:gap-2 text-xs sm:text-sm">
-                  <Users className="h-5 w-5 sm:h-6 sm:w-6" />
-                  <span>Customers</span>
+                <Button variant="outline" className="w-full h-16 sm:h-20 flex flex-col gap-1 sm:gap-2 text-xs sm:text-sm bg-white/60 backdrop-blur-sm border border-navy-200/40 hover:bg-navy-50/50 hover:border-navy-300/40 transition-all duration-300">
+                  <Users className="h-5 w-5 sm:h-6 sm:w-6 text-violet-600" />
+                  <span className="text-navy-700">Customers</span>
                 </Button>
               </Link>
               <Link href="/dashboard/billing">
-                <Button variant="outline" className="w-full h-16 sm:h-20 flex flex-col gap-1 sm:gap-2 text-xs sm:text-sm">
-                  <FileText className="h-5 w-5 sm:h-6 sm:w-6" />
-                  <span>Invoice</span>
+                <Button variant="outline" className="w-full h-16 sm:h-20 flex flex-col gap-1 sm:gap-2 text-xs sm:text-sm bg-white/60 backdrop-blur-sm border border-navy-200/40 hover:bg-navy-50/50 hover:border-navy-300/40 transition-all duration-300">
+                  <Receipt className="h-5 w-5 sm:h-6 sm:w-6 text-amber-600" />
+                  <span className="text-navy-700">Billing</span>
                 </Button>
               </Link>
-              {/* Payments + Expenses */}
               <Link href="/dashboard/payments">
-                <Button variant="outline" className="w-full h-16 sm:h-20 flex flex-col gap-1 sm:gap-2 text-xs sm:text-sm">
-                  <CreditCard className="h-5 w-5 sm:h-6 sm:w-6" />
-                  <span>Payments</span>
+                <Button variant="outline" className="w-full h-16 sm:h-20 flex flex-col gap-1 sm:gap-2 text-xs sm:text-sm bg-white/60 backdrop-blur-sm border border-navy-200/40 hover:bg-navy-50/50 hover:border-navy-300/40 transition-all duration-300">
+                  <CreditCard className="h-5 w-5 sm:h-6 sm:w-6 text-green-600" />
+                  <span className="text-navy-700">Payments</span>
                 </Button>
               </Link>
               <Link href="/dashboard/expenses">
-                <Button variant="outline" className="w-full h-16 sm:h-20 flex flex-col gap-1 sm:gap-2 text-xs sm:text-sm">
-                  <Calculator className="h-5 w-5 sm:h-6 sm:w-6" />
-                  <span>Expenses</span>
+                <Button variant="outline" className="w-full h-16 sm:h-20 flex flex-col gap-1 sm:gap-2 text-xs sm:text-sm bg-white/60 backdrop-blur-sm border border-navy-200/40 hover:bg-navy-50/50 hover:border-navy-300/40 transition-all duration-300">
+                  <Calculator className="h-5 w-5 sm:h-6 sm:w-6 text-red-600" />
+                  <span className="text-navy-700">Expenses</span>
                 </Button>
               </Link>
-              {/* Inventory + Deliveries */}
               <Link href="/dashboard/inventory">
-                <Button variant="outline" className="w-full h-16 sm:h-20 flex flex-col gap-1 sm:gap-2 text-xs sm:text-sm">
-                  <Package className="h-5 w-5 sm:h-6 sm:w-6" />
-                  <span>Inventory</span>
+                <Button variant="outline" className="w-full h-16 sm:h-20 flex flex-col gap-1 sm:gap-2 text-xs sm:text-sm bg-white/60 backdrop-blur-sm border border-navy-200/40 hover:bg-navy-50/50 hover:border-navy-300/40 transition-all duration-300">
+                  <Package className="h-5 w-5 sm:h-6 sm:w-6 text-indigo-600" />
+                  <span className="text-navy-700">Inventory</span>
                 </Button>
               </Link>
               <Link href="/dashboard/deliveries">
-                <Button variant="outline" className="w-full h-16 sm:h-20 flex flex-col gap-1 sm:gap-2 text-xs sm:text-sm">
-                  <Truck className="h-5 w-5 sm:h-6 sm:w-6" />
-                  <span>Deliveries</span>
-                </Button>
-              </Link>
-              {/* Reports + Settings */}
-              <Link href="/dashboard/reports">
-                <Button variant="outline" className="w-full h-16 sm:h-20 flex flex-col gap-1 sm:gap-2 text-xs sm:text-sm">
-                  <BarChart3 className="h-5 w-5 sm:h-6 sm:w-6" />
-                  <span>Reports</span>
-                </Button>
-              </Link>
-              <Link href="/dashboard/settings">
-                <Button variant="outline" className="w-full h-16 sm:h-20 flex flex-col gap-1 sm:gap-2 text-xs sm:text-sm">
-                  <Receipt className="h-5 w-5 sm:h-6 sm:w-6" />
-                  <span>Settings</span>
-                </Button>
-              </Link>
-              {/* Security at the end */}
-              <Link href="/dashboard/security">
-                <Button variant="outline" className="w-full h-16 sm:h-20 flex flex-col gap-1 sm:gap-2 text-xs sm:text-sm">
-                  <Shield className="h-5 w-5 sm:h-6 sm:w-6" />
-                  <span>Security</span>
+                <Button variant="outline" className="w-full h-16 sm:h-20 flex flex-col gap-1 sm:gap-2 text-xs sm:text-sm bg-white/60 backdrop-blur-sm border border-navy-200/40 hover:bg-navy-50/50 hover:border-navy-300/40 transition-all duration-300">
+                  <Truck className="h-5 w-5 sm:h-6 sm:w-6 text-purple-600" />
+                  <span className="text-navy-700">Deliveries</span>
                 </Button>
               </Link>
             </CardContent>
           </Card>
 
           {/* Recent Activity */}
-          <Card>
+          <Card className="bg-white/50 backdrop-blur-sm border border-slate-200/60 shadow-lg hover:shadow-xl transition-all duration-200">
             <CardHeader>
-              <CardTitle className="text-base sm:text-lg">Recent Activity</CardTitle>
-              <CardDescription className="text-sm">
+              <CardTitle className="text-base sm:text-lg bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">Recent Activity</CardTitle>
+              <CardDescription className="text-sm text-slate-600">
                 Latest updates from your business
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-3 sm:space-y-4">
               {recentInvoices.length > 0 ? (
                 recentInvoices.map((invoice, index) => (
-                  <div key={index} className="flex items-center justify-between">
+                  <div key={index} className="flex items-center justify-between p-3 rounded-lg bg-white/40 backdrop-blur-sm border border-navy-200/30 hover:bg-white/50 transition-all duration-300">
                     <div className="flex items-center space-x-2 sm:space-x-3 flex-1 min-w-0">
                       <div className="w-2 h-2 bg-green-500 rounded-full flex-shrink-0"></div>
                       <div className="min-w-0 flex-1">
-                        <p className="text-xs sm:text-sm font-medium truncate">
+                        <p className="text-xs sm:text-sm font-medium text-navy-800 truncate">
                           #{invoice.invoice_number}
                         </p>
-                        <p className="text-xs text-gray-500 truncate">
+                        <p className="text-xs text-navy-600 truncate">
                           {invoice.customer?.name || 'Unknown'}
                         </p>
                       </div>
                     </div>
                     <div className="text-right flex-shrink-0 ml-2">
-                      <p className="text-xs sm:text-sm font-medium">
+                      <p className="text-xs sm:text-sm font-medium text-slate-800">
                         ₹{invoice.total_amount?.toLocaleString()}
                       </p>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-slate-600">
                         {new Date(invoice.invoice_date).toLocaleDateString()}
                       </p>
                     </div>
                   </div>
                 ))
               ) : (
-                <div className="text-center py-4 text-muted-foreground">
+                <div className="text-center py-4 text-navy-600">
                   <FileText className="h-6 w-6 sm:h-8 sm:w-8 mx-auto mb-2 opacity-50" />
                   <p className="text-xs sm:text-sm">No recent invoices</p>
                 </div>
@@ -555,39 +555,39 @@ async function DashboardContent() {
           </Card>
 
           {/* Top Customers */}
-          <Card>
+          <Card className="bg-white/50 backdrop-blur-sm border border-slate-200/60 shadow-lg hover:shadow-xl transition-all duration-200">
             <CardHeader>
-              <CardTitle className="text-base sm:text-lg">Top Customers</CardTitle>
-              <CardDescription className="text-sm">
+              <CardTitle className="text-base sm:text-lg bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">Top Customers</CardTitle>
+              <CardDescription className="text-sm text-slate-600">
                 Best performing customers this month
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-3 sm:space-y-4">
               {customerSales.length > 0 ? (
                 customerSales.map((customer, index) => (
-                  <div key={index} className="flex items-center justify-between">
+                  <div key={index} className="flex items-center justify-between p-3 rounded-lg bg-white/30 backdrop-blur-sm border border-slate-200/40 hover:bg-white/40 transition-all duration-200">
                     <div className="flex items-center space-x-2 sm:space-x-3 flex-1 min-w-0">
-                      <div className="w-6 h-6 sm:w-8 sm:h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
-                        <Users className="h-3 w-3 sm:h-4 sm:w-4 text-blue-600" />
+                      <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-navy-100/50 to-navy-50/30 rounded-full flex items-center justify-center flex-shrink-0">
+                        <Users className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
                       </div>
                       <div className="min-w-0 flex-1">
-                        <p className="text-xs sm:text-sm font-medium truncate">{customer.name}</p>
-                        <p className="text-xs text-gray-500">
+                        <p className="text-xs sm:text-sm font-medium text-slate-800 truncate">{customer.name}</p>
+                        <p className="text-xs text-slate-600">
                           {customer.orderCount} orders
                         </p>
                       </div>
-                    </div>
-                    <div className="text-right flex-shrink-0 ml-2">
-                      <p className="text-xs sm:text-sm font-medium">
-                        ₹{customer.totalSales.toLocaleString()}
-                      </p>
+                      <div className="text-right flex-shrink-0 ml-2">
+                        <p className="text-xs sm:text-sm font-medium text-slate-800">
+                          ₹{customer.totalSales.toLocaleString()}
+                        </p>
+                      </div>
                     </div>
                   </div>
                 ))
               ) : (
-                <div className="text-center py-4 text-muted-foreground">
+                <div className="text-center py-4 text-slate-600">
                   <Users className="h-6 w-6 sm:h-8 sm:w-8 mx-auto mb-2 opacity-50" />
-                  <p className="text-xs sm:text-sm">No customer data</p>
+                  <p className="text-xs sm:text-sm">No customer data available</p>
                 </div>
               )}
             </CardContent>
@@ -603,22 +603,22 @@ async function DashboardContent() {
                 This month's financial performance
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-4 p-6">
               <div className="grid grid-cols-2 gap-3 sm:gap-4">
-                <div className="text-center p-3 sm:p-4 bg-green-50 rounded-lg">
+                <div className="text-center p-3 sm:p-4 bg-gradient-to-br from-green-50/80 to-green-50/50 rounded-lg border border-green-100/20 shadow-sm">
                   <div className="text-lg sm:text-2xl font-bold text-green-600">
                     ₹{stats.monthlyRevenue.toLocaleString()}
                   </div>
                   <div className="text-xs sm:text-sm text-muted-foreground">Revenue</div>
                 </div>
-                <div className="text-center p-3 sm:p-4 bg-red-50 rounded-lg">
+                <div className="text-center p-3 sm:p-4 bg-gradient-to-br from-red-50/80 to-red-50/50 rounded-lg border border-red-100/20 shadow-sm">
                   <div className="text-lg sm:text-2xl font-bold text-red-600">
                     ₹{stats.totalExpenses.toLocaleString()}
                   </div>
                   <div className="text-xs sm:text-sm text-muted-foreground">Expenses</div>
                 </div>
               </div>
-              <div className="text-center p-3 sm:p-4 bg-blue-50 rounded-lg">
+              <div className="text-center p-3 sm:p-4 bg-gradient-to-br from-navy-50/80 to-navy-50/50 rounded-lg border border-navy-100/20 shadow-sm">
                 <div className="text-xl sm:text-3xl font-bold text-blue-600">
                   ₹{stats.grossProfit.toLocaleString()}
                 </div>
