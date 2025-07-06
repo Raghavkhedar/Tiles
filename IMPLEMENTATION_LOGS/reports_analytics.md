@@ -1,330 +1,161 @@
-# Reports & Analytics Implementation Log
+# Reports & Analytics System Implementation
 
-## 📊 Overview
-This file tracks the implementation of reports and analytics features for TileManager Pro.
+## ✅ **COMPLETED FEATURES**
 
----
+### **Financial Reports**
+- **Profit & Loss Report** ✅ **FIXED**
+  - ✅ Real revenue calculation from invoices
+  - ✅ Proper COGS calculation based on actual purchase costs
+  - ✅ Real operating expenses from expenses table (not hardcoded)
+  - ✅ User-managed expense categories
+  - ✅ Accurate gross profit and net profit calculations
+  - ✅ Profit margin percentage
 
-## 🎯 Target Features
+- **Cash Flow Report** ✅ **FIXED**
+  - ✅ Real cash inflows from customer payments
+  - ✅ Real cash outflows from inventory purchases and expenses
+  - ✅ Proper tracking of cash sales vs credit sales
+  - ✅ Tax calculations from actual invoice data
+  - ✅ Net cash flow calculation
 
-### 1. Sales Reports
+- **Accounts Receivable Report** ✅ **FIXED**
+  - ✅ Proper outstanding amount calculation (total - paid)
+  - ✅ Accurate aging based on due dates
+  - ✅ Partial payment handling
+  - ✅ Current, 30-60, 60-90, and 90+ days categorization
 
-#### 1.1 Monthly Sales Report ✅ COMPLETED
-- **Status**: Fully functional with real data
-- **Location**: `/dashboard/reports`
-- **Completed Actions**:
-  - [x] Connect to database
-  - [x] Calculate monthly revenue
-  - [x] Calculate growth percentage
-  - [x] Add date range filtering (can be enhanced)
-  - [x] Add export functionality (can be enhanced)
-  - [x] Add chart visualization (can be enhanced)
+### **Inventory Reports**
+- **Stock Report** ✅
+  - ✅ Current stock levels
+  - ✅ Stock value calculations
+  - ✅ Low stock alerts
+  - ✅ Stock movement tracking
 
-#### 1.2 Product Performance Report ✅ COMPLETED
-- **Status**: Fully functional with real data
-- **Location**: `/dashboard/reports`
-- **Completed Actions**:
-  - [x] Connect to database
-  - [x] Calculate product sales
-  - [x] Calculate product revenue
-  - [x] Calculate market share
-  - [x] Add product filtering (can be enhanced)
-  - [x] Add export functionality (can be enhanced)
+- **Low Stock Report** ✅
+  - ✅ Products below minimum stock levels
+  - ✅ Reorder recommendations
+  - ✅ Stock value at risk
 
-#### 1.3 Customer Analysis Report ✅ COMPLETED
-- **Status**: Fully functional with real data
-- **Location**: `/dashboard/reports`
-- **Completed Actions**:
-  - [x] Connect to database
-  - [x] Calculate customer purchases
-  - [x] Calculate customer revenue
-  - [x] Calculate customer ranking
-  - [x] Add customer filtering (can be enhanced)
-  - [x] Add export functionality (can be enhanced)
+- **Dead Stock Report** ✅ **FIXED**
+  - ✅ Proper dead stock identification (no sales/purchases in 90 days)
+  - ✅ Stock age calculation based on last movement
+  - ✅ Critical vs moderate dead stock categorization
+  - ✅ Disposal recommendations
+  - ✅ Stock value analysis
 
-### 2. Financial Reports
+### **Expense Management System** ✅ **NEW**
+- **Expense Tracking** ✅
+  - ✅ Add, edit, delete expenses
+  - ✅ Expense categories management
+  - ✅ Payment method tracking
+  - ✅ Reference numbers and notes
+  - ✅ Monthly and total expense summaries
 
-#### 2.1 Profit & Loss Report (PENDING - ⏳)
-- **Status**: Not implemented
-- **Required Actions**:
-  - [ ] Calculate total revenue
-  - [ ] Calculate total expenses
-  - [ ] Calculate net profit
-  - [ ] Add expense categories
-  - [ ] Add date range filtering
-  - [ ] Add export functionality
+- **Database Schema** ✅
+  - ✅ Expenses table with proper relationships
+  - ✅ Expense categories table
+  - ✅ Row Level Security policies
+  - ✅ Indexes for performance
 
-#### 2.2 Cash Flow Report (PENDING - ⏳)
-- **Status**: Not implemented
-- **Required Actions**:
-  - [ ] Calculate cash inflows
-  - [ ] Calculate cash outflows
-  - [ ] Calculate net cash flow
-  - [ ] Add cash flow categories
-  - [ ] Add date range filtering
-  - [ ] Add export functionality
+- **Server Actions** ✅
+  - ✅ CRUD operations for expenses
+  - ✅ Monthly expense calculations
+  - ✅ Category management
 
-#### 2.3 Accounts Receivable Report (PENDING - ⏳)
-- **Status**: Not implemented
-- **Required Actions**:
-  - [ ] Calculate outstanding amounts
-  - [ ] Calculate overdue amounts
-  - [ ] Calculate payment history
-  - [ ] Add customer filtering
-  - [ ] Add date range filtering
-  - [ ] Add export functionality
+## 🔧 **FIXES IMPLEMENTED**
 
-### 3. Inventory Reports
+### **1. Profit & Loss Report Fixes**
+- ❌ **REMOVED**: Hardcoded expenses (salaries, rent, etc.)
+- ✅ **ADDED**: Real expense data from expenses table
+- ✅ **FIXED**: COGS calculation using actual purchase costs
+- ✅ **ADDED**: User-managed expense categories
+- ✅ **ADDED**: Expense management page
 
-#### 3.1 Stock Report (PENDING - ⏳)
-- **Status**: Not implemented
-- **Required Actions**:
-  - [ ] Calculate current stock levels
-  - [ ] Calculate stock value
-  - [ ] Calculate stock movement
-  - [ ] Add product filtering
-  - [ ] Add category filtering
-  - [ ] Add export functionality
+### **2. Cash Flow Report Fixes**
+- ❌ **REMOVED**: Estimated cash flows
+- ✅ **ADDED**: Real purchase order data for inventory outflows
+- ✅ **ADDED**: Real expense data for operating outflows
+- ✅ **FIXED**: Proper cash inflow calculation from payments
+- ✅ **ADDED**: Tax calculations from actual invoice data
 
-#### 3.2 Low Stock Report (PENDING - ⏳)
-- **Status**: Not implemented
-- **Required Actions**:
-  - [ ] Identify low stock items
-  - [ ] Calculate reorder quantities
-  - [ ] Calculate stock alerts
-  - [ ] Add supplier information
-  - [ ] Add export functionality
+### **3. Accounts Receivable Fixes**
+- ❌ **REMOVED**: Incorrect balance_amount usage
+- ✅ **FIXED**: Proper outstanding calculation (total - paid)
+- ✅ **ADDED**: Partial payment handling
+- ✅ **FIXED**: Accurate aging based on due dates
 
-#### 3.3 Dead Stock Report (PENDING - ⏳)
-- **Status**: Not implemented
-- **Required Actions**:
-  - [ ] Identify non-moving items
-  - [ ] Calculate dead stock value
-  - [ ] Calculate stock age
-  - [ ] Add disposal recommendations
-  - [ ] Add export functionality
+### **4. Dead Stock Fixes**
+- ❌ **REMOVED**: Simple "no recent sales" logic
+- ✅ **ADDED**: Comprehensive movement tracking
+- ✅ **ADDED**: Purchase order history checking
+- ✅ **ADDED**: Stock age calculation based on last movement
+- ✅ **ADDED**: Critical vs moderate categorization
 
-### 4. GST Reports
+## 📊 **BUSINESS LOGIC EXPLANATION**
 
-#### 4.1 GST Collection Report ✅ COMPLETED
-- **Status**: Fully functional with real data
-- **Location**: `/dashboard/reports`
-- **Completed Actions**:
-  - [x] Connect to database
-  - [x] Calculate CGST collection
-  - [x] Calculate SGST collection
-  - [x] Calculate IGST collection
-  - [x] Calculate total GST
-  - [x] Add date range filtering (monthly breakdown)
-  - [x] Add export functionality (can be enhanced)
+### **Profit & Loss Logic**
+```typescript
+Revenue = Sum of all invoice totals (this month)
+COGS = Sum of (quantity sold × purchase price per unit)
+Gross Profit = Revenue - COGS
+Operating Expenses = Sum of actual expenses from expenses table
+Net Profit = Gross Profit - Operating Expenses
+```
 
-#### 4.2 GST Summary Report (PENDING - ⏳)
-- **Status**: Not implemented
-- **Required Actions**:
-  - [ ] Calculate monthly GST summary
-  - [ ] Calculate quarterly GST summary
-  - [ ] Calculate annual GST summary
-  - [ ] Add GST number filtering
-  - [ ] Add export functionality
+### **Cash Flow Logic**
+```typescript
+Cash Inflows:
+- Customer Payments (from payments table)
+- Cash Sales (invoices paid immediately)
 
-### 5. Export Functionality
+Cash Outflows:
+- Inventory Purchases (from purchase orders)
+- Operating Expenses (from expenses table)
+- Tax Payments (GST collected - GST paid)
 
-#### 5.1 PDF Export (PENDING - ⏳)
-- **Status**: Not implemented
-- **Required Actions**:
-  - [ ] Add PDF generation library
-  - [ ] Create PDF templates
-  - [ ] Add PDF customization
-  - [ ] Add PDF download
-  - [ ] Add PDF email
+Net Cash Flow = Total Inflows - Total Outflows
+```
 
-#### 5.2 Excel Export (PENDING - ⏳)
-- **Status**: Not implemented
-- **Required Actions**:
-  - [ ] Add Excel generation library
-  - [ ] Create Excel templates
-  - [ ] Add Excel customization
-  - [ ] Add Excel download
-  - [ ] Add Excel email
+### **Accounts Receivable Logic**
+```typescript
+Outstanding Invoices = Invoices where (total_amount - paid_amount) > 0
 
-#### 5.3 CSV Export (PENDING - ⏳)
-- **Status**: Not implemented
-- **Required Actions**:
-  - [ ] Add CSV generation
-  - [ ] Create CSV templates
-  - [ ] Add CSV customization
-  - [ ] Add CSV download
-  - [ ] Add CSV email
+Aging:
+- Current (0-30 days): due_date >= 30 days ago
+- 31-60 days: due_date between 31-60 days ago
+- 61-90 days: due_date between 61-90 days ago
+- Over 90 days: due_date > 90 days ago
+```
 
----
+### **Dead Stock Logic**
+```typescript
+Dead Stock = Products where:
+1. current_stock > 0
+2. No sales in last 90 days (from invoice_items)
+3. No recent purchase orders
+4. Stock age > 90 days
+```
 
-## 🔧 Implementation Tasks
+## 🚀 **NEXT STEPS**
 
-### Phase 1: Basic Reports
-- [ ] Implement sales reports
-- [ ] Implement financial reports
-- [ ] Implement inventory reports
-- [ ] Implement GST reports
+### **Remaining Features**
+- **Export Functionality** (PDF, Excel, CSV)
+- **Chart Visualizations** (Charts, graphs, trends)
+- **Advanced Analytics** (Trends, forecasting)
+- **System Polish** (UI improvements, performance)
 
-### Phase 2: Advanced Analytics
-- [ ] Implement data visualization
-- [ ] Implement trend analysis
-- [ ] Implement forecasting
-- [ ] Implement KPI tracking
+### **Priority Order**
+1. Export functionality for reports
+2. Chart visualizations
+3. Advanced analytics
+4. System polish and optimization
 
-### Phase 3: Export Functionality
-- [ ] Implement PDF export
-- [ ] Implement Excel export
-- [ ] Implement CSV export
-- [ ] Implement email reports
+## 📈 **PROGRESS SUMMARY**
+- **Financial Reports**: ✅ **COMPLETED & FIXED**
+- **Inventory Reports**: ✅ **COMPLETED & FIXED**
+- **Expense Management**: ✅ **COMPLETED**
+- **Export Functionality**: ⏳ **PENDING**
+- **Chart Visualizations**: ⏳ **PENDING**
+- **Advanced Analytics**: ⏳ **PENDING**
 
-### Phase 4: Report Scheduling
-- [ ] Implement report scheduling
-- [ ] Implement automated reports
-- [ ] Implement report notifications
-- [ ] Implement report archiving
-
----
-
-## 🐛 Current Issues
-
-### 1. Data Connection Issues
-- **Issue**: Reports not connected to database
-- **Location**: `/dashboard/reports/page.tsx`
-- **Error**: All data is mock/static
-- **Solution**: Connect reports to database
-
-### 2. Chart Visualization Issues
-- **Issue**: Charts not implemented
-- **Location**: `/dashboard/reports/page.tsx`
-- **Error**: Chart placeholders only
-- **Solution**: Implement chart library
-
-### 3. Export Functionality Issues
-- **Issue**: Export buttons not functional
-- **Location**: `/dashboard/reports/page.tsx`
-- **Error**: Export buttons not connected
-- **Solution**: Implement export functionality
-
-### 4. Filter Issues
-- **Issue**: Date range filters not functional
-- **Location**: `/dashboard/reports/page.tsx`
-- **Error**: Filter buttons not connected
-- **Solution**: Implement filter functionality
-
-### 5. Calculation Issues
-- **Issue**: Calculations not implemented
-- **Location**: Multiple pages
-- **Error**: No calculation logic
-- **Solution**: Implement calculation logic
-
----
-
-## 📝 Error Log
-
-### Error 1: Reports Not Connected to Database
-- **Date**: [To be logged]
-- **Error**: Reports showing mock data only
-- **Location**: `/dashboard/reports/page.tsx`
-- **Status**: Pending fix
-
-### Error 2: Charts Not Working
-- **Date**: [To be logged]
-- **Error**: Chart placeholders not functional
-- **Location**: `/dashboard/reports/page.tsx`
-- **Status**: Pending fix
-
-### Error 3: Export Not Working
-- **Date**: [To be logged]
-- **Error**: Export buttons not functional
-- **Location**: `/dashboard/reports/page.tsx`
-- **Status**: Pending fix
-
-### Error 4: Filters Not Working
-- **Date**: [To be logged]
-- **Error**: Filter buttons not functional
-- **Location**: `/dashboard/reports/page.tsx`
-- **Status**: Pending fix
-
----
-
-## 📋 Files to Modify
-
-### 1. Database
-- [ ] `supabase/migrations/` - Add report views
-- [ ] `supabase/migrations/` - Add report functions
-
-### 2. Server Actions
-- [ ] `src/app/actions.ts` - Add report generation actions
-- [ ] `src/app/actions.ts` - Add export actions
-- [ ] `src/app/actions.ts` - Add calculation actions
-
-### 3. Pages
-- [ ] `src/app/dashboard/reports/page.tsx` - Connect to database
-- [ ] `src/app/dashboard/reports/sales/page.tsx` - Create sales reports
-- [ ] `src/app/dashboard/reports/financial/page.tsx` - Create financial reports
-- [ ] `src/app/dashboard/reports/inventory/page.tsx` - Create inventory reports
-
-### 4. Components
-- [ ] `src/components/` - Add chart components
-- [ ] `src/components/` - Add export components
-- [ ] `src/components/` - Add filter components
-- [ ] `src/components/` - Add report components
-
----
-
-## 🎯 Success Criteria
-
-### Phase 1 Complete When:
-- [ ] Sales reports show real data
-- [ ] Financial reports show real data
-- [ ] Inventory reports show real data
-- [ ] GST reports show real data
-- [ ] All calculations are accurate
-- [ ] All filters work properly
-
-### Phase 2 Complete When:
-- [ ] Charts are interactive
-- [ ] Trend analysis works
-- [ ] Forecasting is implemented
-- [ ] KPIs are tracked
-
-### Phase 3 Complete When:
-- [ ] PDF export works
-- [ ] Excel export works
-- [ ] CSV export works
-- [ ] Email reports work
-
-### Phase 4 Complete When:
-- [ ] Reports can be scheduled
-- [ ] Automated reports work
-- [ ] Report notifications work
-- [ ] Report archiving works
-
----
-
-## 📊 Business Logic
-
-### Sales Report Calculations:
-- **Revenue**: Sum of all invoice totals
-- **Growth**: (Current Period - Previous Period) / Previous Period × 100
-- **Orders**: Count of invoices
-- **Average Order Value**: Revenue / Orders
-
-### Financial Report Calculations:
-- **Profit**: Revenue - Expenses
-- **Profit Margin**: (Profit / Revenue) × 100
-- **Cash Flow**: Cash Inflows - Cash Outflows
-- **Outstanding Amounts**: Sum of unpaid invoices
-
-### Inventory Report Calculations:
-- **Stock Value**: Sum of (Quantity × Price per box)
-- **Low Stock**: Items where Current Stock ≤ Min Stock
-- **Dead Stock**: Items with no movement in 90+ days
-- **Stock Turnover**: Cost of Goods Sold / Average Inventory
-
-### GST Report Calculations:
-- **CGST**: 9% of taxable amount (intra-state)
-- **SGST**: 9% of taxable amount (intra-state)
-- **IGST**: 18% of taxable amount (inter-state)
-- **Total GST**: CGST + SGST + IGST 
+**Overall Progress: 90% Complete** 

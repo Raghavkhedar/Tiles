@@ -130,6 +130,11 @@ export default function ScheduleDeliveryPage() {
     
     if (!validateForm()) return;
 
+    if (!selectedInvoice?.customer_id) {
+      toast({ title: "Error", description: "Selected invoice has no customer_id", variant: "destructive" });
+      return;
+    }
+
     try {
       setSaving(true);
       
@@ -142,15 +147,15 @@ export default function ScheduleDeliveryPage() {
       })) || [];
 
       const deliveryPayload = {
-        delivery_number: `DEL-${Date.now()}`, // Generate a temporary number
-        customer_id: selectedInvoice?.customer_id || '',
+        delivery_number: `DEL-${Date.now()}`,
+        customer_id: selectedInvoice?.customer_id!,
         delivery_date: deliveryData.delivery_date,
         delivery_address: selectedInvoice?.customer?.address || '',
         contact_person: selectedInvoice?.customer?.contact_person || '',
         phone: selectedInvoice?.customer?.phone || '',
         status: 'Scheduled',
         notes: deliveryData.notes,
-        user_id: '', // Will be set by the server action
+        user_id: 'DUMMY', // Will be overwritten by the server with the authenticated user
       };
 
       const result = await scheduleDelivery(deliveryPayload, deliveryItems);

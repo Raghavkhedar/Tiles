@@ -8,6 +8,14 @@ import { DeliveryInsert, DeliveryUpdate, DeliveryItemInsert } from '@/types/data
 export async function createDelivery(data: DeliveryInsert, items: DeliveryItemInsert[]) {
   try {
     const supabase = await createClient()
+
+    // Get the authenticated user
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      return { success: false, error: 'Not authenticated' };
+    }
+    // Always set user_id to the authenticated user's ID
+    data.user_id = user.id;
     
     // Start transaction
     const { data: delivery, error: deliveryError } = await supabase
@@ -72,6 +80,18 @@ export async function deleteDelivery(id: string) {
   try {
     const supabase = await createClient()
     
+    // First delete delivery items
+    const { error: itemsError } = await supabase
+      .from('delivery_items')
+      .delete()
+      .eq('delivery_id', id)
+
+    if (itemsError) {
+      console.error('Error deleting delivery items:', itemsError)
+      return { success: false, error: itemsError.message }
+    }
+
+    // Then delete the delivery
     const { error } = await supabase
       .from('deliveries')
       .delete()
@@ -89,6 +109,8 @@ export async function deleteDelivery(id: string) {
     return { success: false, error: 'Failed to delete delivery' }
   }
 }
+
+
 
 export async function getDeliveries() {
   try {

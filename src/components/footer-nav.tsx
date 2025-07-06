@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Home, Boxes, Users, Truck, FileText, ShoppingCart, ClipboardList, BarChart2, Settings, CreditCard } from 'lucide-react'
+import { Home, Boxes, Users, Truck, FileText, ShoppingCart, ClipboardList, BarChart2, Settings, CreditCard, Receipt } from 'lucide-react'
 
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: Home },
@@ -10,6 +10,7 @@ const navItems = [
   { href: '/dashboard/purchase-orders', label: 'Purchase Orders', icon: FileText },
   { href: '/dashboard/billing', label: 'Billing', icon: ShoppingCart },
   { href: '/dashboard/payments', label: 'Payments', icon: CreditCard },
+  { href: '/dashboard/expenses', label: 'Expenses', icon: Receipt },
   { href: '/dashboard/deliveries', label: 'Deliveries', icon: ClipboardList },
   { href: '/dashboard/reports', label: 'Reports', icon: BarChart2 },
   { href: '/dashboard/settings', label: 'Settings', icon: Settings },

@@ -589,6 +589,70 @@ export interface Database {
           created_at?: string
         }
       }
+      expenses: {
+        Row: {
+          id: string
+          expense_date: string
+          category: string
+          description: string
+          amount: number
+          payment_method: string
+          reference_number: string | null
+          notes: string | null
+          user_id: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          expense_date: string
+          category: string
+          description: string
+          amount: number
+          payment_method?: string
+          reference_number?: string | null
+          notes?: string | null
+          user_id: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          expense_date?: string
+          category?: string
+          description?: string
+          amount?: number
+          payment_method?: string
+          reference_number?: string | null
+          notes?: string | null
+          user_id?: string
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      expense_categories: {
+        Row: {
+          id: string
+          name: string
+          description: string | null
+          user_id: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          description?: string | null
+          user_id: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          description?: string | null
+          user_id?: string
+          created_at?: string
+        }
+      }
     }
     Views: {
       [_ in never]: never
@@ -650,6 +714,14 @@ export type DeliveryUpdate = Database['public']['Tables']['deliveries']['Update'
 export type DeliveryItem = Database['public']['Tables']['delivery_items']['Row']
 export type DeliveryItemInsert = Database['public']['Tables']['delivery_items']['Insert']
 export type DeliveryItemUpdate = Database['public']['Tables']['delivery_items']['Update']
+
+export type Expense = Database['public']['Tables']['expenses']['Row']
+export type ExpenseInsert = Database['public']['Tables']['expenses']['Insert']
+export type ExpenseUpdate = Database['public']['Tables']['expenses']['Update']
+
+export type ExpenseCategory = Database['public']['Tables']['expense_categories']['Row']
+export type ExpenseCategoryInsert = Database['public']['Tables']['expense_categories']['Insert']
+export type ExpenseCategoryUpdate = Database['public']['Tables']['expense_categories']['Update']
 
 // Extended types with relationships
 export interface ProductWithRelations extends Product {
