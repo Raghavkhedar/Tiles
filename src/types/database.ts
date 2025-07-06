@@ -825,6 +825,10 @@ export interface UserPermissions {
     edit: boolean;
     delete: boolean;
   };
+  security: {
+    view: boolean;
+    edit: boolean;
+  };
 }
 
 export interface UserProfile {

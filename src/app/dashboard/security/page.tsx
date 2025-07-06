@@ -86,8 +86,8 @@ export default function SecurityPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [filters, setFilters] = useState({
-    action: "",
-    table_name: "",
+    action: "all",
+    table_name: "all",
     date_from: "",
     date_to: "",
   });
@@ -106,7 +106,7 @@ export default function SecurityPage() {
     setLoading(true);
     try {
       const result = await getSecurityDashboard();
-      if (result.success) {
+      if (result.success && result.data) {
         setDashboardData(result.data);
       }
     } catch (error) {
@@ -120,9 +120,9 @@ export default function SecurityPage() {
     setLoading(true);
     try {
       const result = await getAuditLogs(currentPage, 20, filters);
-      if (result.success) {
+      if (result.success && result.data) {
         setAuditLogs(result.data);
-        setTotalPages(result.totalPages);
+        setTotalPages(result.totalPages || 1);
       }
     } catch (error) {
       console.error("Error loading audit logs:", error);
@@ -146,7 +146,7 @@ export default function SecurityPage() {
     setLoading(true);
     try {
       const result = await exportSecurityLogs(format);
-      if (result.success) {
+      if (result.success && result.data && result.filename) {
         // Create and download file
         const blob = new Blob([result.data], { type: format === "json" ? "application/json" : "text/csv" });
         const url = window.URL.createObjectURL(blob);
@@ -443,7 +443,7 @@ export default function SecurityPage() {
                           <SelectValue placeholder="All Actions" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">All Actions</SelectItem>
+                          <SelectItem value="all">All Actions</SelectItem>
                           <SelectItem value="INSERT">Insert</SelectItem>
                           <SelectItem value="UPDATE">Update</SelectItem>
                           <SelectItem value="DELETE">Delete</SelectItem>
@@ -459,7 +459,7 @@ export default function SecurityPage() {
                           <SelectValue placeholder="All Tables" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">All Tables</SelectItem>
+                          <SelectItem value="all">All Tables</SelectItem>
                           <SelectItem value="products">Products</SelectItem>
                           <SelectItem value="customers">Customers</SelectItem>
                           <SelectItem value="suppliers">Suppliers</SelectItem>

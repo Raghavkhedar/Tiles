@@ -12,6 +12,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, UserPermissions> = {
     reports: { view: true, export: true },
     settings: { view: true, edit: true },
     users: { view: true, create: true, edit: true, delete: true },
+    security: { view: true, edit: true },
   },
   manager: {
     inventory: { view: true, create: true, edit: true, delete: false },
@@ -23,6 +24,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, UserPermissions> = {
     reports: { view: true, export: true },
     settings: { view: true, edit: false },
     users: { view: true, create: false, edit: false, delete: false },
+    security: { view: true, edit: false },
   },
   user: {
     inventory: { view: true, create: true, edit: true, delete: false },
@@ -34,6 +36,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, UserPermissions> = {
     reports: { view: true, export: false },
     settings: { view: false, edit: false },
     users: { view: false, create: false, edit: false, delete: false },
+    security: { view: false, edit: false },
   },
   viewer: {
     inventory: { view: true, create: false, edit: false, delete: false },
@@ -45,6 +48,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, UserPermissions> = {
     reports: { view: true, export: false },
     settings: { view: false, edit: false },
     users: { view: false, create: false, edit: false, delete: false },
+    security: { view: false, edit: false },
   },
 };
 

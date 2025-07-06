@@ -92,10 +92,10 @@ export async function getAuditLogs(
       .order("created_at", { ascending: false });
 
     // Apply filters
-    if (filters?.action) {
+    if (filters?.action && filters.action !== "all") {
       query = query.eq("action", filters.action);
     }
-    if (filters?.table_name) {
+    if (filters?.table_name && filters.table_name !== "all") {
       query = query.eq("table_name", filters.table_name);
     }
     if (filters?.date_from) {
@@ -409,20 +409,29 @@ export async function exportSecurityLogs(format: "csv" | "json") {
       return { success: false, error: error.message };
     }
 
+    const logs = data || [];
     let exportData: string;
     let filename: string;
 
-    if (format === "json") {
-      exportData = JSON.stringify(data, null, 2);
-      filename = `security-logs-${new Date().toISOString().split('T')[0]}.json`;
+    if (format === "csv") {
+      const headers = ["Action", "Table", "Record ID", "IP Address", "User Agent", "Created At"];
+      const csvContent = [
+        headers.join(","),
+        ...logs.map(log => [
+          log.action,
+          log.table_name || "",
+          log.record_id || "",
+          log.ip_address || "",
+          (log.user_agent || "").replace(/"/g, '""'),
+          new Date(log.created_at).toISOString()
+        ].join(","))
+      ].join("\n");
+      
+      exportData = csvContent;
+      filename = `security_logs_${new Date().toISOString().split('T')[0]}.csv`;
     } else {
-      // CSV format
-      const csvHeaders = "Action,Table,Record ID,IP Address,User Agent,Created At\n";
-      const csvRows = data?.map(log => 
-        `"${log.action}","${log.table_name || ''}","${log.record_id || ''}","${log.ip_address || ''}","${log.user_agent || ''}","${log.created_at}"`
-      ).join('\n') || '';
-      exportData = csvHeaders + csvRows;
-      filename = `security-logs-${new Date().toISOString().split('T')[0]}.csv`;
+      exportData = JSON.stringify(logs, null, 2);
+      filename = `security_logs_${new Date().toISOString().split('T')[0]}.json`;
     }
 
     return { success: true, data: exportData, filename };
