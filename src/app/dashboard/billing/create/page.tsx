@@ -369,7 +369,7 @@ export default function CreateInvoicePage() {
   return (
     <>
       <DashboardNavbar />
-      <main className="w-full bg-gray-50 min-h-screen">
+      <main className="w-full bg-background min-h-screen">
         <div className="container mx-auto px-4 py-8">
           {/* Breadcrumb */}
           <Breadcrumb items={[
@@ -386,10 +386,10 @@ export default function CreateInvoicePage() {
               </Button>
             </Link>
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">
+              <h1 className="text-3xl font-bold text-foreground">
                 Create New Invoice
               </h1>
-              <p className="text-gray-600">
+              <p className="text-muted-foreground">
                 Generate GST compliant invoice for tile sales
               </p>
             </div>
@@ -596,8 +596,8 @@ export default function CreateInvoicePage() {
                       </div>
                     </div>
                     {areaCalculator.totalArea > 0 && (
-                      <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-                        <p className="text-sm text-gray-600">
+                      <div className="mt-4 p-4 bg-card rounded-lg">
+                        <p className="text-sm text-muted-foreground">
                           Total Area: <span className="font-medium">{areaCalculator.totalArea.toFixed(2)} m²</span> |
                           Boxes Needed:{" "}
                           <span className="font-medium">{areaCalculator.boxesNeeded} boxes</span> | Extra:{" "}

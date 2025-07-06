@@ -59,7 +59,7 @@ export default function ViewInvoicePage() {
     switch (status) {
       case 'Paid': return 'bg-green-100 text-green-800';
       case 'Overdue': return 'bg-red-100 text-red-800';
-      case 'Draft': return 'bg-gray-100 text-gray-800';
+      case 'Draft': return 'bg-muted text-muted-foreground';
       default: return 'bg-yellow-100 text-yellow-800';
     }
   };
@@ -125,10 +125,10 @@ export default function ViewInvoicePage() {
             </Button>
           </Link>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">
+            <h1 className="text-3xl font-bold text-foreground">
               Invoice #{invoice.invoice_number}
             </h1>
-            <p className="text-gray-600">
+            <p className="text-muted-foreground">
               {new Date(invoice.invoice_date).toLocaleDateString()}
             </p>
           </div>
@@ -197,18 +197,18 @@ export default function ViewInvoicePage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <h3 className="font-semibold text-lg">{invoice.customer?.name}</h3>
-                  <p className="text-gray-600">{invoice.customer?.contact_person}</p>
-                  <p className="text-gray-600">{invoice.customer?.phone}</p>
-                  <p className="text-gray-600">{invoice.customer?.email}</p>
+                  <p className="text-muted-foreground">{invoice.customer?.contact_person}</p>
+                  <p className="text-muted-foreground">{invoice.customer?.phone}</p>
+                  <p className="text-muted-foreground">{invoice.customer?.email}</p>
                 </div>
                 <div>
                   <h4 className="font-medium mb-2">Billing Address</h4>
-                  <p className="text-gray-600">
+                  <p className="text-muted-foreground">
                     {invoice.customer?.address}<br />
                     {invoice.customer?.city}, {invoice.customer?.state} - {invoice.customer?.pincode}
                   </p>
                   {invoice.customer?.gst_number && (
-                    <p className="text-gray-600 mt-2">
+                    <p className="text-muted-foreground mt-2">
                       <strong>GST:</strong> {invoice.customer.gst_number}
                     </p>
                   )}
@@ -241,7 +241,7 @@ export default function ViewInvoicePage() {
                           <div>
                             <div className="font-medium">{item.product_name}</div>
                             {item.product_sku && (
-                              <div className="text-sm text-gray-600">SKU: {item.product_sku}</div>
+                              <div className="text-sm text-muted-foreground">SKU: {item.product_sku}</div>
                             )}
                           </div>
                         </td>
@@ -269,13 +269,13 @@ export default function ViewInvoicePage() {
                 {invoice.notes && (
                   <div>
                     <h4 className="font-medium mb-2">Notes</h4>
-                    <p className="text-gray-600">{invoice.notes}</p>
+                    <p className="text-muted-foreground">{invoice.notes}</p>
                   </div>
                 )}
                 {invoice.terms_conditions && (
                   <div>
                     <h4 className="font-medium mb-2">Terms & Conditions</h4>
-                    <p className="text-gray-600">{invoice.terms_conditions}</p>
+                    <p className="text-muted-foreground">{invoice.terms_conditions}</p>
                   </div>
                 )}
               </CardContent>

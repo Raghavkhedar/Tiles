@@ -57,7 +57,7 @@ export default function SupplierViewPage() {
     if (status === 'Active') {
       return { variant: "default" as const, className: "bg-green-100 text-green-800" };
     } else if (status === 'Inactive') {
-      return { variant: "secondary" as const, className: "bg-gray-100 text-gray-800" };
+      return { variant: "secondary" as const, className: "bg-muted text-muted-foreground" };
     } else {
       return { variant: "destructive" as const, className: "bg-red-100 text-red-800" };
     }
@@ -84,7 +84,7 @@ export default function SupplierViewPage() {
     return (
       <>
         <DashboardNavbar />
-        <main className="w-full bg-gray-50 min-h-screen">
+        <main className="w-full bg-background min-h-screen">
           <div className="container mx-auto px-4 py-8">
             <div className="flex items-center justify-center py-8">
               <Loader2 className="h-8 w-8 animate-spin" />
@@ -100,10 +100,10 @@ export default function SupplierViewPage() {
     return (
       <>
         <DashboardNavbar />
-        <main className="w-full bg-gray-50 min-h-screen">
+        <main className="w-full bg-background min-h-screen">
           <div className="container mx-auto px-4 py-8">
             <div className="text-center py-8">
-              <p className="text-gray-600">Supplier not found</p>
+              <p className="text-muted-foreground">Supplier not found</p>
               <Link href="/dashboard/suppliers">
                 <Button className="mt-4">Back to Suppliers</Button>
               </Link>
@@ -119,7 +119,7 @@ export default function SupplierViewPage() {
   return (
     <>
       <DashboardNavbar />
-      <main className="w-full bg-gray-50 min-h-screen">
+      <main className="w-full bg-background min-h-screen">
         <div className="container mx-auto px-4 py-8">
           {/* Header */}
           <div className="flex items-center justify-between mb-8">
@@ -131,8 +131,8 @@ export default function SupplierViewPage() {
                 </Button>
               </Link>
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">{supplier.name}</h1>
-                <p className="text-gray-600">Supplier Details</p>
+                <h1 className="text-3xl font-bold text-foreground">{supplier.name}</h1>
+                <p className="text-muted-foreground">Supplier Details</p>
               </div>
             </div>
             <div className="flex gap-3">
@@ -159,31 +159,31 @@ export default function SupplierViewPage() {
                 <CardContent className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <Label className="text-sm font-medium text-gray-500">Company Name</Label>
+                      <Label className="text-sm font-medium text-muted-foreground">Company Name</Label>
                       <p className="text-lg font-semibold">{supplier.name}</p>
                     </div>
                     <div>
-                      <Label className="text-sm font-medium text-gray-500">Contact Person</Label>
+                      <Label className="text-sm font-medium text-muted-foreground">Contact Person</Label>
                       <p className="text-lg">{supplier.contact_person || 'N/A'}</p>
                     </div>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <Label className="text-sm font-medium text-gray-500">GST Number</Label>
+                      <Label className="text-sm font-medium text-muted-foreground">GST Number</Label>
                       <p className="text-lg font-mono">{supplier.gst_number || 'N/A'}</p>
                     </div>
                     <div>
-                      <Label className="text-sm font-medium text-gray-500">PAN Number</Label>
+                      <Label className="text-sm font-medium text-muted-foreground">PAN Number</Label>
                       <p className="text-lg font-mono">{supplier.pan_number || 'N/A'}</p>
                     </div>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <Label className="text-sm font-medium text-gray-500">Rating</Label>
+                      <Label className="text-sm font-medium text-muted-foreground">Rating</Label>
                       {renderRating(supplier.rating)}
                     </div>
                     <div>
-                      <Label className="text-sm font-medium text-gray-500">Status</Label>
+                      <Label className="text-sm font-medium text-muted-foreground">Status</Label>
                       <Badge variant={statusBadge.variant} className={statusBadge.className}>
                         {supplier.status || 'Active'}
                       </Badge>
@@ -203,14 +203,14 @@ export default function SupplierViewPage() {
                 <CardContent className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <Label className="text-sm font-medium text-gray-500 flex items-center gap-2">
+                      <Label className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                         <Phone className="h-4 w-4" />
                         Phone
                       </Label>
                       <p className="text-lg">{supplier.phone || 'N/A'}</p>
                     </div>
                     <div>
-                      <Label className="text-sm font-medium text-gray-500 flex items-center gap-2">
+                      <Label className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                         <Mail className="h-4 w-4" />
                         Email
                       </Label>
@@ -230,20 +230,20 @@ export default function SupplierViewPage() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
-                    <Label className="text-sm font-medium text-gray-500">Complete Address</Label>
+                    <Label className="text-sm font-medium text-muted-foreground">Complete Address</Label>
                     <p className="text-lg">{supplier.address || 'N/A'}</p>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
-                      <Label className="text-sm font-medium text-gray-500">City</Label>
+                      <Label className="text-sm font-medium text-muted-foreground">City</Label>
                       <p className="text-lg">{supplier.city || 'N/A'}</p>
                     </div>
                     <div>
-                      <Label className="text-sm font-medium text-gray-500">State</Label>
+                      <Label className="text-sm font-medium text-muted-foreground">State</Label>
                       <p className="text-lg">{supplier.state || 'N/A'}</p>
                     </div>
                     <div>
-                      <Label className="text-sm font-medium text-gray-500">PIN Code</Label>
+                      <Label className="text-sm font-medium text-muted-foreground">PIN Code</Label>
                       <p className="text-lg">{supplier.pincode || 'N/A'}</p>
                     </div>
                   </div>
@@ -262,17 +262,17 @@ export default function SupplierViewPage() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
-                    <Label className="text-sm font-medium text-gray-500">Credit Limit</Label>
+                    <Label className="text-sm font-medium text-muted-foreground">Credit Limit</Label>
                     <p className="text-2xl font-bold text-green-600">
                       ₹{(supplier.credit_limit || 0).toLocaleString()}
                     </p>
                   </div>
                   <div>
-                    <Label className="text-sm font-medium text-gray-500">Payment Terms</Label>
+                    <Label className="text-sm font-medium text-muted-foreground">Payment Terms</Label>
                     <p className="text-lg">{supplier.payment_terms || 'N/A'}</p>
                   </div>
                   <div>
-                    <Label className="text-sm font-medium text-gray-500">Created On</Label>
+                    <Label className="text-sm font-medium text-muted-foreground">Created On</Label>
                     <p className="text-lg">
                       {new Date(supplier.created_at).toLocaleDateString()}
                     </p>
@@ -316,7 +316,7 @@ export default function SupplierViewPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="text-center py-8 text-gray-500">
+              <div className="text-center py-8 text-muted-foreground">
                 <Truck className="h-12 w-12 mx-auto mb-4" />
                 <p>Performance metrics will be available when purchase order system is implemented</p>
               </div>

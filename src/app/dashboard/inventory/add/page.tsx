@@ -178,7 +178,7 @@ export default function AddProductPage() {
   return (
     <>
       <DashboardNavbar />
-      <main className="w-full bg-gray-50 min-h-screen">
+      <main className="w-full bg-background min-h-screen">
         <div className="container mx-auto px-4 py-8">
           {/* Breadcrumb */}
           <Breadcrumb items={[
@@ -195,10 +195,10 @@ export default function AddProductPage() {
               </Button>
             </Link>
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">
+              <h1 className="text-3xl font-bold text-foreground">
                 Add New Product
               </h1>
-              <p className="text-gray-600">
+              <p className="text-muted-foreground">
                 Add a new tile product to your inventory
               </p>
             </div>
@@ -210,7 +210,7 @@ export default function AddProductPage() {
               <div className="lg:col-span-2 space-y-6">
                 {/* Basic Information */}
                 <Card className="hover:shadow-md transition-shadow duration-200">
-                  <CardHeader className="border-b bg-gray-50">
+                  <CardHeader className="border-b bg-muted">
                     <CardTitle className="flex items-center gap-2">
                       <Package className="h-5 w-5 text-blue-600" />
                       Product Information
@@ -234,7 +234,7 @@ export default function AddProductPage() {
                           className="focus:ring-2 focus:ring-orange-500"
                           aria-describedby="productName-help"
                         />
-                        <p id="productName-help" className="text-xs text-gray-500 mt-1">
+                        <p id="productName-help" className="text-xs text-muted-foreground mt-1">
                           Enter the full product name as it appears on packaging
                         </p>
                       </div>
@@ -251,7 +251,7 @@ export default function AddProductPage() {
                           className="focus:ring-2 focus:ring-orange-500"
                           aria-describedby="sku-help"
                         />
-                        <p id="sku-help" className="text-xs text-gray-500 mt-1">
+                        <p id="sku-help" className="text-xs text-muted-foreground mt-1">
                           Unique product identifier code
                         </p>
                       </div>
@@ -299,7 +299,7 @@ export default function AddProductPage() {
 
                 {/* Specifications */}
                 <Card className="hover:shadow-md transition-shadow duration-200">
-                  <CardHeader className="border-b bg-gray-50">
+                  <CardHeader className="border-b bg-muted">
                     <CardTitle className="flex items-center gap-2">
                       <Calculator className="h-5 w-5 text-green-600" />
                       Tile Specifications
@@ -393,7 +393,7 @@ export default function AddProductPage() {
 
                 {/* Supplier Information */}
                 <Card className="hover:shadow-md transition-shadow duration-200">
-                  <CardHeader className="border-b bg-gray-50">
+                  <CardHeader className="border-b bg-muted">
                     <CardTitle className="flex items-center gap-2">
                       <Package className="h-5 w-5 text-purple-600" />
                       Supplier Information
@@ -433,7 +433,7 @@ export default function AddProductPage() {
               {/* Pricing and Stock */}
               <div className="space-y-6">
                 <Card className="hover:shadow-md transition-shadow duration-200">
-                  <CardHeader className="border-b bg-gray-50">
+                  <CardHeader className="border-b bg-muted">
                     <CardTitle className="flex items-center gap-2">
                       <Calculator className="h-5 w-5 text-orange-600" />
                       Pricing Information
@@ -463,7 +463,7 @@ export default function AddProductPage() {
                 </Card>
 
                 <Card className="hover:shadow-md transition-shadow duration-200">
-                  <CardHeader className="border-b bg-gray-50">
+                  <CardHeader className="border-b bg-muted">
                     <CardTitle className="flex items-center gap-2">
                       <Package className="h-5 w-5 text-blue-600" />
                       Stock Management
@@ -516,7 +516,7 @@ export default function AddProductPage() {
                 </Card>
 
                 <Card className="hover:shadow-md transition-shadow duration-200">
-                  <CardHeader className="border-b bg-gray-50">
+                  <CardHeader className="border-b bg-muted">
                     <CardTitle className="flex items-center gap-2">
                       <Image className="h-5 w-5 text-pink-600" />
                       Product Images
@@ -528,7 +528,7 @@ export default function AddProductPage() {
                   <CardContent className="space-y-4 pt-6">
                     <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-orange-400 transition-colors">
                       <Image className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-                      <p className="text-sm text-gray-600 mb-2">
+                      <p className="text-sm text-muted-foreground mb-2">
                         Upload product images
                       </p>
                       <Button variant="outline" size="sm" type="button" className="hover:bg-orange-50">
@@ -556,7 +556,7 @@ export default function AddProductPage() {
                       </>
                     )}
                   </Button>
-                  <Button variant="outline" className="w-full hover:bg-gray-50" type="button">
+                  <Button variant="outline" className="w-full hover:bg-muted" type="button">
                     Save & Add Another
                   </Button>
                 </div>

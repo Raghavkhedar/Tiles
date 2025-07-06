@@ -135,7 +135,7 @@ export default function PurchaseOrdersPage() {
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
-      'Draft': { variant: 'secondary' as const, color: 'bg-gray-100 text-gray-800' },
+      'Draft': { variant: 'secondary' as const, color: 'bg-muted text-muted-foreground' },
       'Sent': { variant: 'default' as const, color: 'bg-blue-100 text-blue-800' },
       'Confirmed': { variant: 'default' as const, color: 'bg-yellow-100 text-yellow-800' },
       'Partially Received': { variant: 'default' as const, color: 'bg-orange-100 text-orange-800' },
@@ -161,7 +161,7 @@ export default function PurchaseOrdersPage() {
   return (
     <>
       <DashboardNavbar />
-      <main className="w-full bg-gray-50 min-h-screen pb-24">
+      <main className="w-full bg-background min-h-screen pb-24">
         <div className="container mx-auto px-4 py-8">
           {/* Breadcrumb */}
           <Breadcrumb items={[{ label: "Purchase Orders" }]} />
@@ -169,10 +169,10 @@ export default function PurchaseOrdersPage() {
           {/* Header */}
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              <h1 className="text-3xl font-bold text-foreground mb-2">
                 Purchase Orders
               </h1>
-              <p className="text-gray-600">
+              <p className="text-muted-foreground">
                 Manage your purchase orders and supplier relationships
               </p>
             </div>
@@ -237,7 +237,7 @@ export default function PurchaseOrdersPage() {
             <CardContent className="pt-6">
               <div className="flex flex-col md:flex-row gap-4">
                 <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
                   <Input
                     placeholder="Search by PO number or supplier..."
                     className="pl-10"
@@ -281,9 +281,9 @@ export default function PurchaseOrdersPage() {
           ) : filteredOrders.length === 0 ? (
             <Card>
               <CardContent className="p-6 text-center">
-                <FileText className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                <FileText className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
                 <h3 className="text-lg font-semibold mb-2">No purchase orders found</h3>
-                <p className="text-gray-600 mb-4">
+                <p className="text-muted-foreground mb-4">
                   {searchQuery || statusFilter !== 'all' 
                     ? 'Try adjusting your search or filter criteria'
                     : 'Get started by creating your first purchase order'
@@ -310,10 +310,10 @@ export default function PurchaseOrdersPage() {
                           <h3 className="text-lg font-semibold">{po.po_number}</h3>
                           {getStatusBadge(po.status)}
                         </div>
-                        <p className="text-sm text-gray-500">
+                        <p className="text-sm text-muted-foreground">
                           Supplier: {po.supplier?.name || 'Unknown'}
                         </p>
-                        <p className="text-sm text-gray-500">
+                        <p className="text-sm text-muted-foreground">
                           Order Date: {formatDate(po.order_date)}
                           {po.expected_delivery_date && ` • Expected: ${formatDate(po.expected_delivery_date)}`}
                         </p>
@@ -322,7 +322,7 @@ export default function PurchaseOrdersPage() {
                         <div className="text-lg font-semibold">
                           {formatCurrency(po.total_amount)}
                         </div>
-                        <p className="text-sm text-gray-500">
+                        <p className="text-sm text-muted-foreground">
                           Paid: {formatCurrency(po.paid_amount)}
                         </p>
                         {po.balance_amount > 0 && (

@@ -102,7 +102,7 @@ export default function SetupSampleDataPage() {
   return (
     <div className="container mx-auto p-8">
       <h1 className="text-2xl font-bold mb-4">Setup Sample Data</h1>
-      <p className="text-gray-600 mb-6">
+      <p className="text-muted-foreground mb-6">
         This will create sample categories and suppliers for testing the forms.
       </p>
       
@@ -125,7 +125,7 @@ export default function SetupSampleDataPage() {
         <h2 className="text-xl font-semibold mb-4">Sample Categories:</h2>
         <ul className="list-disc list-inside space-y-1">
           {sampleCategories.map((category, index) => (
-            <li key={index} className="text-gray-700">
+            <li key={index} className="text-foreground">
               {category.name} - {category.description}
             </li>
           ))}
@@ -136,7 +136,7 @@ export default function SetupSampleDataPage() {
         <h2 className="text-xl font-semibold mb-4">Sample Suppliers:</h2>
         <ul className="list-disc list-inside space-y-1">
           {sampleSuppliers.map((supplier, index) => (
-            <li key={index} className="text-gray-700">
+            <li key={index} className="text-foreground">
               {supplier.name} - {supplier.contact_person}
             </li>
           ))}

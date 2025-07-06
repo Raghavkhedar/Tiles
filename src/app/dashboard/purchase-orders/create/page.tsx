@@ -554,17 +554,17 @@ export default function CreatePurchaseOrderPage() {
 
                 {/* Display calculated values */}
                 {item.product_id && (
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-gray-50 p-3 rounded-lg">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-muted p-3 rounded-lg">
                     <div>
-                      <Label className="text-sm text-gray-600">Boxes Required</Label>
+                      <Label className="text-sm text-muted-foreground">Boxes Required</Label>
                       <div className="font-semibold">{item.quantity}</div>
                     </div>
                     <div>
-                      <Label className="text-sm text-gray-600">Area Coverage</Label>
+                      <Label className="text-sm text-muted-foreground">Area Coverage</Label>
                       <div className="font-semibold">{item.area.toFixed(2)} sq ft</div>
                     </div>
                     <div>
-                      <Label className="text-sm text-gray-600">Unit Price</Label>
+                      <Label className="text-sm text-muted-foreground">Unit Price</Label>
                       <div className="font-semibold">₹{item.unit_price.toFixed(2)}</div>
                     </div>
                   </div>

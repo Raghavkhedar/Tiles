@@ -169,10 +169,10 @@ export default function PaymentsPage() {
       case 'Paid': return 'bg-green-100 text-green-800';
       case 'Partially Paid': return 'bg-blue-100 text-blue-800';
       case 'Pending': return 'bg-yellow-100 text-yellow-800';
-      case 'Draft': return 'bg-gray-100 text-gray-800';
+      case 'Draft': return 'bg-muted text-muted-foreground';
       case 'Sent': return 'bg-orange-100 text-orange-800';
       case 'Overdue': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+      default: return 'bg-muted text-muted-foreground';
     }
   };
 
@@ -343,7 +343,7 @@ export default function PaymentsPage() {
               </thead>
               <tbody>
                 {paginatedPayments.map((payment) => (
-                  <tr key={payment.id} className="border-b hover:bg-gray-50">
+                  <tr key={payment.id} className="border-b hover:bg-muted">
                     <td className="p-2">
                       {format(new Date(payment.payment_date), 'dd/MM/yyyy')}
                     </td>

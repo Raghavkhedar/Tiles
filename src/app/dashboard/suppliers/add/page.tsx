@@ -127,7 +127,7 @@ export default function AddSupplierPage() {
   return (
     <>
       <DashboardNavbar />
-      <main className="w-full bg-gray-50 min-h-screen">
+      <main className="w-full bg-background min-h-screen">
         <div className="container mx-auto px-4 py-8">
           {/* Breadcrumb */}
           <Breadcrumb items={[
@@ -144,10 +144,10 @@ export default function AddSupplierPage() {
               </Button>
             </Link>
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">
+              <h1 className="text-3xl font-bold text-foreground">
                 Add New Supplier
               </h1>
-              <p className="text-gray-600">
+              <p className="text-muted-foreground">
                 Create a new supplier profile for your business
               </p>
             </div>
@@ -159,7 +159,7 @@ export default function AddSupplierPage() {
               <div className="lg:col-span-2 space-y-6">
                 {/* Basic Information */}
                 <Card className="hover:shadow-md transition-shadow duration-200">
-                  <CardHeader className="border-b bg-gray-50">
+                  <CardHeader className="border-b bg-muted">
                     <CardTitle className="flex items-center gap-2">
                       <Building className="h-5 w-5 text-blue-600" />
                       Company Information
@@ -261,7 +261,7 @@ export default function AddSupplierPage() {
 
                 {/* Contact Information */}
                 <Card className="hover:shadow-md transition-shadow duration-200">
-                  <CardHeader className="border-b bg-gray-50">
+                  <CardHeader className="border-b bg-muted">
                     <CardTitle className="flex items-center gap-2">
                       <Phone className="h-5 w-5 text-green-600" />
                       Contact Information
@@ -303,7 +303,7 @@ export default function AddSupplierPage() {
 
                 {/* Address Information */}
                 <Card className="hover:shadow-md transition-shadow duration-200">
-                  <CardHeader className="border-b bg-gray-50">
+                  <CardHeader className="border-b bg-muted">
                     <CardTitle className="flex items-center gap-2">
                       <MapPin className="h-5 w-5 text-purple-600" />
                       Address Information
@@ -377,7 +377,7 @@ export default function AddSupplierPage() {
               {/* Business Settings */}
               <div className="space-y-6">
                 <Card className="hover:shadow-md transition-shadow duration-200">
-                  <CardHeader className="border-b bg-gray-50">
+                  <CardHeader className="border-b bg-muted">
                     <CardTitle className="flex items-center gap-2">
                       <Package className="h-5 w-5 text-orange-600" />
                       Business Settings
@@ -442,7 +442,7 @@ export default function AddSupplierPage() {
                         )}
                       </Button>
                       <Link href="/dashboard/suppliers">
-                        <Button variant="outline" className="w-full hover:bg-gray-50">
+                        <Button variant="outline" className="w-full hover:bg-muted">
                           Cancel
                         </Button>
                       </Link>

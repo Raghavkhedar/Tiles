@@ -201,7 +201,7 @@ export default function SuppliersPage() {
     if (status === 'Active') {
       return { variant: "default" as const, className: "bg-green-100 text-green-800" };
     } else if (status === 'Inactive') {
-      return { variant: "secondary" as const, className: "bg-gray-100 text-gray-800" };
+      return { variant: "secondary" as const, className: "bg-muted text-muted-foreground" };
     } else {
       return { variant: "destructive" as const, className: "bg-red-100 text-red-800" };
     }
@@ -225,7 +225,7 @@ export default function SuppliersPage() {
   return (
     <>
       <DashboardNavbar />
-      <main className="w-full bg-gray-50 min-h-screen">
+      <main className="w-full bg-background min-h-screen">
         <div className="container mx-auto px-4 py-8">
           {/* Breadcrumb */}
           <Breadcrumb items={[{ label: "Supplier Management" }]} />
@@ -233,10 +233,10 @@ export default function SuppliersPage() {
           {/* Header */}
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              <h1 className="text-3xl font-bold text-foreground mb-2">
                 Supplier Management
               </h1>
-              <p className="text-gray-600">
+              <p className="text-muted-foreground">
                 Manage supplier relationships and track purchase orders
               </p>
             </div>
@@ -316,7 +316,7 @@ export default function SuppliersPage() {
             <CardContent className="pt-6">
               <div className="flex flex-col md:flex-row gap-4">
                 <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
                   <Input
                     placeholder="Search suppliers by name, phone, or GST number..."
                     className="pl-10"
@@ -353,8 +353,8 @@ export default function SuppliersPage() {
                 </div>
               ) : filteredSuppliers.length === 0 ? (
                 <div className="text-center py-8">
-                  <Truck className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-                  <p className="text-gray-600">
+                  <Truck className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                  <p className="text-muted-foreground">
                     {searchQuery ? 'No suppliers found matching your search.' : 'No suppliers added yet.'}
                   </p>
                   {!searchQuery && (
@@ -370,14 +370,14 @@ export default function SuppliersPage() {
                 <div className="overflow-x-auto">
                   <Table>
                     <TableHeader>
-                      <TableRow className="bg-gray-50 hover:bg-gray-50">
-                        <TableHead className="font-semibold text-gray-900">Supplier Details</TableHead>
-                        <TableHead className="font-semibold text-gray-900">Contact Information</TableHead>
-                        <TableHead className="font-semibold text-gray-900">GST/PAN</TableHead>
-                        <TableHead className="font-semibold text-gray-900">Rating</TableHead>
-                        <TableHead className="font-semibold text-gray-900">Credit Info</TableHead>
-                        <TableHead className="font-semibold text-gray-900">Status</TableHead>
-                        <TableHead className="font-semibold text-gray-900">Actions</TableHead>
+                      <TableRow className="bg-muted hover:bg-muted">
+                        <TableHead className="font-semibold text-foreground">Supplier Details</TableHead>
+                        <TableHead className="font-semibold text-foreground">Contact Information</TableHead>
+                        <TableHead className="font-semibold text-foreground">GST/PAN</TableHead>
+                        <TableHead className="font-semibold text-foreground">Rating</TableHead>
+                        <TableHead className="font-semibold text-foreground">Credit Info</TableHead>
+                        <TableHead className="font-semibold text-foreground">Status</TableHead>
+                        <TableHead className="font-semibold text-foreground">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -386,17 +386,17 @@ export default function SuppliersPage() {
                         return (
                           <TableRow 
                             key={supplier.id}
-                            className={`hover:bg-gray-50 transition-colors duration-150 ${
-                              index % 2 === 0 ? 'bg-white' : 'bg-gray-25'
+                            className={`hover:bg-muted transition-colors duration-150 ${
+                              index % 2 === 0 ? 'bg-card' : 'bg-muted'
                             }`}
                           >
                             <TableCell className="py-4">
                               <div>
-                                <div className="font-medium text-gray-900">{supplier.name}</div>
-                                <div className="text-sm text-gray-500">
+                                <div className="font-medium text-foreground">{supplier.name}</div>
+                                <div className="text-sm text-muted-foreground">
                                   {supplier.contact_person || 'N/A'}
                                 </div>
-                                <div className="text-sm text-gray-500 flex items-center gap-1 mt-1">
+                                <div className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
                                   <MapPin className="h-3 w-3" />
                                   {formatAddress(supplier.address)}
                                 </div>
@@ -406,20 +406,20 @@ export default function SuppliersPage() {
                               <div className="space-y-1">
                                 <div className="flex items-center gap-1 text-sm">
                                   <Phone className="h-3 w-3" />
-                                  <span className="text-gray-700">{supplier.phone || 'N/A'}</span>
+                                  <span className="text-muted-foreground">{supplier.phone || 'N/A'}</span>
                                 </div>
                                 <div className="flex items-center gap-1 text-sm">
                                   <Mail className="h-3 w-3" />
-                                  <span className="text-gray-700">{supplier.email || 'N/A'}</span>
+                                  <span className="text-muted-foreground">{supplier.email || 'N/A'}</span>
                                 </div>
                               </div>
                             </TableCell>
                             <TableCell className="py-4">
                               <div className="space-y-1">
-                                <div className="text-sm font-mono text-gray-700">
+                                <div className="text-sm font-mono text-muted-foreground">
                                   GST: {supplier.gst_number || 'N/A'}
                                 </div>
-                                <div className="text-sm font-mono text-gray-700">
+                                <div className="text-sm font-mono text-muted-foreground">
                                   PAN: {supplier.pan_number || 'N/A'}
                                 </div>
                               </div>
@@ -429,10 +429,10 @@ export default function SuppliersPage() {
                             </TableCell>
                             <TableCell className="py-4">
                               <div>
-                                <div className="text-sm text-gray-500">
+                                <div className="text-sm text-muted-foreground">
                                   Credit limit: ₹{(supplier.credit_limit || 0).toLocaleString()}
                                 </div>
-                                <div className="text-sm text-gray-500">
+                                <div className="text-sm text-muted-foreground">
                                   Terms: {supplier.payment_terms || 'N/A'}
                                 </div>
                               </div>
@@ -447,7 +447,7 @@ export default function SuppliersPage() {
                                 <Button 
                                   variant="ghost" 
                                   size="sm"
-                                  className="h-8 w-8 p-0 hover:bg-gray-100"
+                                  className="h-8 w-8 p-0 hover:bg-muted"
                                   onClick={() => router.push(`/dashboard/suppliers/view/${supplier.id}`)}
                                 >
                                   <Eye className="h-4 w-4" />
@@ -455,7 +455,7 @@ export default function SuppliersPage() {
                                 <Button 
                                   variant="ghost" 
                                   size="sm"
-                                  className="h-8 w-8 p-0 hover:bg-gray-100"
+                                  className="h-8 w-8 p-0 hover:bg-muted"
                                   onClick={() => router.push(`/dashboard/suppliers/edit/${supplier.id}`)}
                                 >
                                   <Edit className="h-4 w-4" />

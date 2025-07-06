@@ -42,7 +42,7 @@ export default function TestDBPage() {
       <button
         onClick={testDatabase}
         disabled={loading}
-        className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 disabled:opacity-50"
+        className="bg-primary text-primary-foreground px-4 py-2 rounded hover:bg-primary/80 disabled:opacity-50"
       >
         {loading ? 'Testing...' : 'Test Database Connection'}
       </button>
@@ -50,7 +50,7 @@ export default function TestDBPage() {
       {Object.keys(results).length > 0 && (
         <div className="mt-8">
           <h2 className="text-xl font-semibold mb-4">Test Results:</h2>
-          <pre className="bg-gray-100 p-4 rounded overflow-auto">
+          <pre className="bg-muted p-4 rounded overflow-auto">
             {JSON.stringify(results, null, 2)}
           </pre>
         </div>

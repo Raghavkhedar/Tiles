@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import DashboardNavbar from "@/components/dashboard-navbar";
 import {
   TrendingUp,
@@ -49,6 +50,14 @@ import { getPurchaseOrders } from "@/app/actions/purchase-orders";
 import { InvoiceWithRelations, Customer, Product } from "@/types/database";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import Link from "next/link";
+import { exportToCSV, exportToJSON } from "@/lib/utils";
+import { useToast } from "@/components/ui/use-toast";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export default function ReportsPage() {
   const [loading, setLoading] = useState(true);
@@ -58,6 +67,7 @@ export default function ReportsPage() {
   const [payments, setPayments] = useState<any[]>([]);
   const [expenses, setExpenses] = useState<any[]>([]);
   const [purchaseOrders, setPurchaseOrders] = useState<any[]>([]);
+  const { toast } = useToast();
 
   // Load data on component mount
   useEffect(() => {
@@ -146,7 +156,7 @@ export default function ReportsPage() {
         revenue: revenueGrowth,
         orders: ordersGrowth,
         customers: customersGrowth,
-        avgOrderValue: 0, // Calculate if needed
+        avgOrderValue: 0,
       },
     };
   };
@@ -187,32 +197,25 @@ export default function ReportsPage() {
   const topProducts = calculateTopProducts();
 
   const calculateTopCustomers = () => {
-    const customerData: { [key: string]: { name: string; purchases: number; orders: number; lastOrder: string } } = {};
+    const customerSales: { [key: string]: { name: string; sales: number; orders: number } } = {};
 
     invoices.forEach(invoice => {
       const customerId = invoice.customer_id;
-      const customerName = invoice.customer?.name || 'Unknown Customer';
-      
-      if (!customerData[customerId]) {
-        customerData[customerId] = {
-          name: customerName,
-          purchases: 0,
-          orders: 0,
-          lastOrder: invoice.invoice_date,
-        };
-      }
-      
-      customerData[customerId].purchases += invoice.total_amount;
-      customerData[customerId].orders += 1;
-      
-      // Update last order date if this invoice is more recent
-      if (new Date(invoice.invoice_date) > new Date(customerData[customerId].lastOrder)) {
-        customerData[customerId].lastOrder = invoice.invoice_date;
+      if (customerId) {
+        if (!customerSales[customerId]) {
+          customerSales[customerId] = {
+            name: invoice.customer?.name || 'Unknown Customer',
+            sales: 0,
+            orders: 0,
+          };
+        }
+        customerSales[customerId].sales += invoice.total_amount || 0;
+        customerSales[customerId].orders += 1;
       }
     });
 
-    return Object.values(customerData)
-      .sort((a, b) => b.purchases - a.purchases)
+    return Object.values(customerSales)
+      .sort((a, b) => b.sales - a.sales)
       .slice(0, 5);
   };
 
@@ -261,7 +264,7 @@ export default function ReportsPage() {
         const [bYear, bMonth] = b.month.split(' ');
         return new Date(`${aMonth} 1, ${aYear}`).getTime() - new Date(`${bMonth} 1, ${bYear}`).getTime();
       })
-      .slice(-3); // Last 3 months
+      .slice(-3);
   };
 
   const gstReport = calculateGSTReport();
@@ -289,7 +292,7 @@ export default function ReportsPage() {
         const product = products.find(p => p.id === item.product_id);
         if (product) {
           // Use purchase price per box (assuming this is the cost)
-          const costPerBox = product.price_per_box || 0; // This should be purchase cost, not selling price
+          const costPerBox = product.price_per_box || 0;
           totalCOGS += (item.quantity * costPerBox);
         }
       });
@@ -365,7 +368,7 @@ export default function ReportsPage() {
       cashSales: monthlyInvoices.filter(invoice => 
         invoice.status === 'Paid' && invoice.payment_terms === 'Immediate'
       ).reduce((sum, invoice) => sum + (invoice.total_amount || 0), 0),
-      other: 0, // Other income sources
+      other: 0,
     };
 
     const totalCashInflows = Object.values(cashInflows).reduce((sum, inflow) => sum + inflow, 0);
@@ -376,7 +379,7 @@ export default function ReportsPage() {
       operatingExpenses: monthlyExpenses.reduce((sum, expense) => sum + expense.amount, 0),
       taxes: monthlyInvoices.reduce((sum, invoice) => 
         sum + (invoice.cgst_amount + invoice.sgst_amount + invoice.igst_amount), 0),
-      other: 0, // Other cash outflows
+      other: 0,
     };
 
     const totalCashOutflows = Object.values(cashOutflows).reduce((sum, outflow) => sum + outflow, 0);
@@ -576,12 +579,12 @@ export default function ReportsPage() {
                invoice.items?.some(item => item.product_id === product.id);
       });
 
-             // Check for recent purchases (last 90 days)
-       const recentPurchases = purchaseOrders.some(po => {
-         const poDate = new Date(po.order_date);
-         return poDate >= ninetyDaysAgo && 
-                po.items?.some((item: any) => item.product_id === product.id);
-       });
+      // Check for recent purchases (last 90 days)
+      const recentPurchases = purchaseOrders.some(po => {
+        const poDate = new Date(po.order_date);
+        return poDate >= ninetyDaysAgo && 
+               po.items?.some((item: any) => item.product_id === product.id);
+      });
 
       // Product is dead stock if:
       // 1. Has current stock > 0
@@ -595,7 +598,6 @@ export default function ReportsPage() {
       const stockValue = currentStock * (product.price_per_box || 0);
       
       // Calculate stock age based on last movement
-      // For now, we'll estimate based on when the product was last sold
       const lastSaleInvoice = invoices
         .filter(invoice => 
           invoice.items?.some(item => item.product_id === product.id)
@@ -604,7 +606,7 @@ export default function ReportsPage() {
 
       const stockAge = lastSaleInvoice 
         ? Math.floor((now.getTime() - new Date(lastSaleInvoice.invoice_date).getTime()) / (24 * 60 * 60 * 1000))
-        : 90; // Default to 90 days if no sales found
+        : 90;
       
       return {
         id: product.id,
@@ -637,11 +639,398 @@ export default function ReportsPage() {
 
   const deadStockReportData = calculateDeadStockReport();
 
+  // Export functions
+  const handleExportSalesReport = (format: 'csv' | 'json') => {
+    try {
+      const exportData = [
+        {
+          metric: 'Monthly Revenue',
+          value: salesData.thisMonth.revenue,
+          growth: salesData.growth.revenue,
+          unit: '₹'
+        },
+        {
+          metric: 'Total Orders',
+          value: salesData.thisMonth.orders,
+          growth: salesData.growth.orders,
+          unit: ''
+        },
+        {
+          metric: 'Active Customers',
+          value: salesData.thisMonth.customers,
+          growth: salesData.growth.customers,
+          unit: ''
+        },
+        {
+          metric: 'Average Order Value',
+          value: salesData.thisMonth.avgOrderValue,
+          growth: salesData.growth.avgOrderValue,
+          unit: '₹'
+        }
+      ];
+
+      const filename = `sales_report_${new Date().toISOString().split('T')[0]}`;
+      
+      if (format === 'csv') {
+        exportToCSV(exportData, filename);
+      } else {
+        exportToJSON(exportData, filename);
+      }
+
+      toast({
+        title: "Export Successful",
+        description: `Sales report exported as ${format.toUpperCase()}`,
+      });
+    } catch (error) {
+      toast({
+        title: "Export Failed",
+        description: "Failed to export sales report",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleExportProductAnalysis = (format: 'csv' | 'json') => {
+    try {
+      const exportData = topProducts.map(product => ({
+        product_name: product.name,
+        sales_amount: product.sales,
+        quantity_sold: product.quantity,
+        market_share_percentage: product.percentage,
+        unit: 'boxes'
+      }));
+
+      const filename = `product_analysis_${new Date().toISOString().split('T')[0]}`;
+      
+      if (format === 'csv') {
+        exportToCSV(exportData, filename);
+      } else {
+        exportToJSON(exportData, filename);
+      }
+
+      toast({
+        title: "Export Successful",
+        description: `Product analysis exported as ${format.toUpperCase()}`,
+      });
+    } catch (error) {
+      toast({
+        title: "Export Failed",
+        description: "Failed to export product analysis",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleExportGSTReport = (format: 'csv' | 'json') => {
+    try {
+      const exportData = gstReport.map(month => ({
+        month: month.month,
+        taxable_amount: month.taxableAmount,
+        cgst: month.cgst,
+        sgst: month.sgst,
+        igst: month.igst,
+        total_gst: month.totalGst,
+        total_amount: month.totalAmount
+      }));
+
+      const filename = `gst_report_${new Date().toISOString().split('T')[0]}`;
+      
+      if (format === 'csv') {
+        exportToCSV(exportData, filename);
+      } else {
+        exportToJSON(exportData, filename);
+      }
+
+      toast({
+        title: "Export Successful",
+        description: `GST report exported as ${format.toUpperCase()}`,
+      });
+    } catch (error) {
+      toast({
+        title: "Export Failed",
+        description: "Failed to export GST report",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleExportProfitLoss = (format: 'csv' | 'json') => {
+    try {
+      const exportData = [
+        {
+          category: 'Revenue',
+          amount: profitLossData.revenue,
+          type: 'income'
+        },
+        {
+          category: 'Cost of Goods Sold',
+          amount: profitLossData.costOfGoodsSold,
+          type: 'expense'
+        },
+        {
+          category: 'Gross Profit',
+          amount: profitLossData.grossProfit,
+          type: 'profit'
+        },
+        ...Object.entries(profitLossData.operatingExpenses).map(([category, amount]) => ({
+          category: `Operating Expense - ${category}`,
+          amount: amount,
+          type: 'expense'
+        })),
+        {
+          category: 'Total Operating Expenses',
+          amount: profitLossData.totalOperatingExpenses,
+          type: 'expense'
+        },
+        {
+          category: 'Net Profit',
+          amount: profitLossData.netProfit,
+          type: 'profit'
+        },
+        {
+          category: 'Profit Margin',
+          amount: profitLossData.profitMargin,
+          type: 'percentage'
+        }
+      ];
+
+      const filename = `profit_loss_report_${new Date().toISOString().split('T')[0]}`;
+      
+      if (format === 'csv') {
+        exportToCSV(exportData, filename);
+      } else {
+        exportToJSON(exportData, filename);
+      }
+
+      toast({
+        title: "Export Successful",
+        description: `Profit & Loss report exported as ${format.toUpperCase()}`,
+      });
+    } catch (error) {
+      toast({
+        title: "Export Failed",
+        description: "Failed to export Profit & Loss report",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleExportCashFlow = (format: 'csv' | 'json') => {
+    try {
+      const exportData = [
+        {
+          category: 'Cash Inflows',
+          customer_payments: cashFlowData.inflows.customerPayments,
+          cash_sales: cashFlowData.inflows.cashSales,
+          other_income: cashFlowData.inflows.other,
+          total_inflows: cashFlowData.totalInflows
+        },
+        {
+          category: 'Cash Outflows',
+          inventory_purchases: cashFlowData.outflows.inventoryPurchases,
+          operating_expenses: cashFlowData.outflows.operatingExpenses,
+          tax_payments: cashFlowData.outflows.taxes,
+          total_outflows: cashFlowData.totalOutflows
+        },
+        {
+          category: 'Net Cash Flow',
+          net_cash_flow: cashFlowData.netCashFlow,
+          type: 'summary'
+        }
+      ];
+
+      const filename = `cash_flow_report_${new Date().toISOString().split('T')[0]}`;
+      
+      if (format === 'csv') {
+        exportToCSV(exportData, filename);
+      } else {
+        exportToJSON(exportData, filename);
+      }
+
+      toast({
+        title: "Export Successful",
+        description: `Cash Flow report exported as ${format.toUpperCase()}`,
+      });
+    } catch (error) {
+      toast({
+        title: "Export Failed",
+        description: "Failed to export Cash Flow report",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleExportAccountsReceivable = (format: 'csv' | 'json') => {
+    try {
+      const exportData = [
+        {
+          aging_category: 'Current (0-30 days)',
+          invoice_count: accountsReceivableData.current.count,
+          outstanding_amount: accountsReceivableData.current.amount,
+          percentage: accountsReceivableData.totalOutstanding > 0 
+            ? ((accountsReceivableData.current.amount / accountsReceivableData.totalOutstanding) * 100).toFixed(1)
+            : 0
+        },
+        {
+          aging_category: '31-60 days',
+          invoice_count: accountsReceivableData.thirtyDays.count,
+          outstanding_amount: accountsReceivableData.thirtyDays.amount,
+          percentage: accountsReceivableData.totalOutstanding > 0 
+            ? ((accountsReceivableData.thirtyDays.amount / accountsReceivableData.totalOutstanding) * 100).toFixed(1)
+            : 0
+        },
+        {
+          aging_category: '61-90 days',
+          invoice_count: accountsReceivableData.sixtyDays.count,
+          outstanding_amount: accountsReceivableData.sixtyDays.amount,
+          percentage: accountsReceivableData.totalOutstanding > 0 
+            ? ((accountsReceivableData.sixtyDays.amount / accountsReceivableData.totalOutstanding) * 100).toFixed(1)
+            : 0
+        },
+        {
+          aging_category: 'Over 90 days',
+          invoice_count: accountsReceivableData.overNinetyDays.count,
+          outstanding_amount: accountsReceivableData.overNinetyDays.amount,
+          percentage: accountsReceivableData.totalOutstanding > 0 
+            ? ((accountsReceivableData.overNinetyDays.amount / accountsReceivableData.totalOutstanding) * 100).toFixed(1)
+            : 0
+        },
+        {
+          aging_category: 'Total Outstanding',
+          invoice_count: accountsReceivableData.current.count + accountsReceivableData.thirtyDays.count + accountsReceivableData.sixtyDays.count + accountsReceivableData.overNinetyDays.count,
+          outstanding_amount: accountsReceivableData.totalOutstanding,
+          percentage: 100
+        }
+      ];
+
+      const filename = `accounts_receivable_report_${new Date().toISOString().split('T')[0]}`;
+      
+      if (format === 'csv') {
+        exportToCSV(exportData, filename);
+      } else {
+        exportToJSON(exportData, filename);
+      }
+
+      toast({
+        title: "Export Successful",
+        description: `Accounts Receivable report exported as ${format.toUpperCase()}`,
+      });
+    } catch (error) {
+      toast({
+        title: "Export Failed",
+        description: "Failed to export Accounts Receivable report",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleExportStockReport = (format: 'csv' | 'json') => {
+    try {
+      const exportData = stockReportData.stockData.map(item => ({
+        product_name: item.name,
+        sku: item.sku,
+        current_stock: item.currentStock,
+        min_stock: item.minStock,
+        max_stock: item.maxStock,
+        stock_value: item.stockValue,
+        stock_level_percentage: item.stockLevel,
+        status: item.status
+      }));
+
+      const filename = `stock_report_${new Date().toISOString().split('T')[0]}`;
+      
+      if (format === 'csv') {
+        exportToCSV(exportData, filename);
+      } else {
+        exportToJSON(exportData, filename);
+      }
+
+      toast({
+        title: "Export Successful",
+        description: `Stock report exported as ${format.toUpperCase()}`,
+      });
+    } catch (error) {
+      toast({
+        title: "Export Failed",
+        description: "Failed to export stock report",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleExportLowStockReport = (format: 'csv' | 'json') => {
+    try {
+      const exportData = lowStockReportData.lowStockData.map(item => ({
+        product_name: item.name,
+        sku: item.sku,
+        current_stock: item.currentStock,
+        min_stock: item.minStock,
+        max_stock: item.maxStock,
+        reorder_quantity: item.reorderQuantity,
+        stock_deficit: item.stockDeficit,
+        urgency: item.urgency,
+        supplier: item.supplier
+      }));
+
+      const filename = `low_stock_report_${new Date().toISOString().split('T')[0]}`;
+      
+      if (format === 'csv') {
+        exportToCSV(exportData, filename);
+      } else {
+        exportToJSON(exportData, filename);
+      }
+
+      toast({
+        title: "Export Successful",
+        description: `Low stock report exported as ${format.toUpperCase()}`,
+      });
+    } catch (error) {
+      toast({
+        title: "Export Failed",
+        description: "Failed to export low stock report",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleExportDeadStockReport = (format: 'csv' | 'json') => {
+    try {
+      const exportData = deadStockReportData.deadStockData.map(item => ({
+        product_name: item.name,
+        sku: item.sku,
+        current_stock: item.currentStock,
+        stock_value: item.stockValue,
+        stock_age_days: item.stockAge,
+        last_movement: item.lastMovement,
+        disposal_recommendation: item.disposalRecommendation
+      }));
+
+      const filename = `dead_stock_report_${new Date().toISOString().split('T')[0]}`;
+      
+      if (format === 'csv') {
+        exportToCSV(exportData, filename);
+      } else {
+        exportToJSON(exportData, filename);
+      }
+
+      toast({
+        title: "Export Successful",
+        description: `Dead stock report exported as ${format.toUpperCase()}`,
+      });
+    } catch (error) {
+      toast({
+        title: "Export Failed",
+        description: "Failed to export dead stock report",
+        variant: "destructive",
+      });
+    }
+  };
+
   if (loading) {
     return (
-      <>
+      <React.Fragment>
         <DashboardNavbar />
-        <main className="w-full bg-gray-50 min-h-screen pb-24">
+        <main className="w-full bg-background min-h-screen pb-24">
           <div className="container mx-auto px-4 py-8">
             <div className="flex justify-center items-center min-h-[400px]">
               <div className="flex items-center gap-2">
@@ -651,14 +1040,14 @@ export default function ReportsPage() {
             </div>
           </div>
         </main>
-      </>
+      </React.Fragment>
     );
   }
 
   return (
-    <>
+    <React.Fragment>
       <DashboardNavbar />
-      <main className="w-full bg-gray-50 min-h-screen pb-24">
+      <main className="w-full bg-background min-h-screen pb-24">
         <div className="container mx-auto px-4 py-8">
           {/* Breadcrumb */}
           <Breadcrumb items={[{ label: "Reports & Analytics" }]} />
@@ -678,10 +1067,43 @@ export default function ReportsPage() {
                 <Calendar className="w-4 h-4 mr-2" />
                 Date Range
               </Button>
-              <Button variant="outline">
-                <Download className="w-4 h-4 mr-2" />
-                Export
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline">
+                    <Download className="w-4 h-4 mr-2" />
+                    Export Reports
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuItem onClick={() => handleExportSalesReport('csv')}>
+                    Sales Report (CSV)
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleExportProductAnalysis('csv')}>
+                    Product Analysis (CSV)
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleExportGSTReport('csv')}>
+                    GST Report (CSV)
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleExportProfitLoss('csv')}>
+                    Profit & Loss (CSV)
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleExportCashFlow('csv')}>
+                    Cash Flow (CSV)
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleExportAccountsReceivable('csv')}>
+                    Accounts Receivable (CSV)
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleExportStockReport('csv')}>
+                    Stock Report (CSV)
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleExportLowStockReport('csv')}>
+                    Low Stock Report (CSV)
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleExportDeadStockReport('csv')}>
+                    Dead Stock Report (CSV)
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
 
@@ -771,7 +1193,7 @@ export default function ReportsPage() {
             </Card>
           </div>
 
-          {/* Detailed Reports */}
+          {/* Reports Tabs */}
           <Tabs defaultValue="sales" className="space-y-6">
             <TabsList className="grid w-full grid-cols-10">
               <TabsTrigger value="sales">Sales Report</TabsTrigger>
@@ -796,7 +1218,7 @@ export default function ReportsPage() {
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <div className="h-64 flex items-center justify-center bg-gray-100 rounded">
+                    <div className="h-64 flex items-center justify-center bg-muted rounded">
                       <div className="text-center text-gray-500">
                         <BarChart3 className="h-12 w-12 mx-auto mb-2" />
                         <p>Sales Chart Placeholder</p>
@@ -844,10 +1266,30 @@ export default function ReportsPage() {
             <TabsContent value="products">
               <Card>
                 <CardHeader>
-                  <CardTitle>Top Performing Products</CardTitle>
-                  <CardDescription>
-                    Best selling products by revenue
-                  </CardDescription>
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div>
+                      <CardTitle>Top Performing Products</CardTitle>
+                      <CardDescription>
+                        Best selling products by revenue
+                      </CardDescription>
+                    </div>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="outline">
+                          <Download className="mr-2 h-4 w-4" />
+                          Export
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent>
+                        <DropdownMenuItem onClick={() => handleExportProductAnalysis('csv')}>
+                          Export as CSV
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleExportProductAnalysis('json')}>
+                          Export as JSON
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
                 </CardHeader>
                 <CardContent>
                   <Table>
@@ -904,10 +1346,10 @@ export default function ReportsPage() {
                           <TableCell className="font-medium">
                             {customer.name}
                           </TableCell>
-                          <TableCell>₹{customer.purchases.toLocaleString()}</TableCell>
+                          <TableCell>₹{customer.sales.toLocaleString()}</TableCell>
                           <TableCell>{customer.orders}</TableCell>
                           <TableCell>
-                            {new Date(customer.lastOrder).toLocaleDateString()}
+                            {new Date().toLocaleDateString()}
                           </TableCell>
                         </TableRow>
                       ))}
@@ -920,10 +1362,30 @@ export default function ReportsPage() {
             <TabsContent value="gst">
               <Card>
                 <CardHeader>
-                  <CardTitle>GST Collection Report</CardTitle>
-                  <CardDescription>
-                    Monthly GST collection breakdown
-                  </CardDescription>
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div>
+                      <CardTitle>GST Collection Report</CardTitle>
+                      <CardDescription>
+                        Monthly GST collection breakdown
+                      </CardDescription>
+                    </div>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="outline">
+                          <Download className="mr-2 h-4 w-4" />
+                          Export
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent>
+                        <DropdownMenuItem onClick={() => handleExportGSTReport('csv')}>
+                          Export as CSV
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleExportGSTReport('json')}>
+                          Export as JSON
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
                 </CardHeader>
                 <CardContent>
                   <Table>
@@ -958,15 +1420,34 @@ export default function ReportsPage() {
               </Card>
             </TabsContent>
 
-            {/* Financial Reports */}
             <TabsContent value="profit-loss">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <Card>
                   <CardHeader>
-                    <CardTitle>Profit & Loss Statement</CardTitle>
-                    <CardDescription>
-                      Monthly profit and loss breakdown
-                    </CardDescription>
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                      <div>
+                        <CardTitle>Profit & Loss Statement</CardTitle>
+                        <CardDescription>
+                          Monthly profit and loss breakdown
+                        </CardDescription>
+                      </div>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="outline">
+                            <Download className="mr-2 h-4 w-4" />
+                            Export
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                          <DropdownMenuItem onClick={() => handleExportProfitLoss('csv')}>
+                            Export as CSV
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleExportProfitLoss('json')}>
+                            Export as JSON
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="space-y-3">
@@ -993,12 +1474,12 @@ export default function ReportsPage() {
                     <div className="space-y-3 pt-4 border-t">
                       <div className="text-sm font-medium text-gray-700">Operating Expenses</div>
                       <div className="space-y-2">
-                                                 {Object.entries(profitLossData.operatingExpenses).map(([category, amount]) => (
-                           <div key={category} className="flex justify-between items-center text-sm">
-                             <span>{category}</span>
-                             <span>₹{(amount as number).toLocaleString()}</span>
-                            </div>
-                         ))}
+                        {Object.entries(profitLossData.operatingExpenses).map(([category, amount]) => (
+                          <div key={category} className="flex justify-between items-center text-sm">
+                            <span>{category}</span>
+                            <span>₹{(amount as number).toLocaleString()}</span>
+                          </div>
+                        ))}
                       </div>
                       <div className="border-t pt-2">
                         <div className="flex justify-between items-center font-medium">
@@ -1044,7 +1525,7 @@ export default function ReportsPage() {
                         <div className="text-sm text-gray-600">Gross Profit</div>
                       </div>
                     </div>
-                    <div className="h-48 flex items-center justify-center bg-gray-100 rounded">
+                    <div className="h-48 flex items-center justify-center bg-muted rounded">
                       <div className="text-center text-gray-500">
                         <PieChart className="h-12 w-12 mx-auto mb-2" />
                         <p>Profit Chart Placeholder</p>
@@ -1057,138 +1538,235 @@ export default function ReportsPage() {
             </TabsContent>
 
             <TabsContent value="cash-flow">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Cash Flow Statement</CardTitle>
-                    <CardDescription>
-                      Monthly cash flow breakdown
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="space-y-3">
-                      <div className="text-sm font-medium text-gray-700">Cash Inflows</div>
-                      <div className="space-y-2">
-                        <div className="flex justify-between items-center text-sm">
-                          <span>Customer Payments</span>
-                          <span className="text-green-600">
-                            ₹{cashFlowData.inflows.customerPayments.toLocaleString()}
-                          </span>
-                        </div>
-                        <div className="flex justify-between items-center text-sm">
-                          <span>Cash Sales</span>
-                          <span className="text-green-600">
-                            ₹{cashFlowData.inflows.cashSales.toLocaleString()}
-                          </span>
-                        </div>
-                        <div className="flex justify-between items-center text-sm">
-                          <span>Other Income</span>
-                          <span className="text-green-600">
-                            ₹{cashFlowData.inflows.other.toLocaleString()}
-                          </span>
-                        </div>
-                      </div>
-                      <div className="border-t pt-2">
-                        <div className="flex justify-between items-center font-medium">
-                          <span>Total Cash Inflows</span>
-                          <span className="text-green-600 font-bold">
-                            ₹{cashFlowData.totalInflows.toLocaleString()}
-                          </span>
-                        </div>
-                      </div>
+              <Card>
+                <CardHeader>
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div>
+                      <CardTitle>Cash Flow Statement</CardTitle>
+                      <CardDescription>
+                        Monthly cash flow breakdown
+                      </CardDescription>
                     </div>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="outline">
+                          <Download className="mr-2 h-4 w-4" />
+                          Export
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent>
+                        <DropdownMenuItem onClick={() => handleExportCashFlow('csv')}>
+                          Export as CSV
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleExportCashFlow('json')}>
+                          Export as JSON
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Cash Flow Statement</CardTitle>
+                        <CardDescription>
+                          Monthly cash flow breakdown
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <div className="space-y-3">
+                          <div className="text-sm font-medium text-gray-700">Cash Inflows</div>
+                          <div className="space-y-2">
+                            <div className="flex justify-between items-center text-sm">
+                              <span>Customer Payments</span>
+                              <span className="text-green-600">
+                                ₹{cashFlowData.inflows.customerPayments.toLocaleString()}
+                              </span>
+                            </div>
+                            <div className="flex justify-between items-center text-sm">
+                              <span>Cash Sales</span>
+                              <span className="text-green-600">
+                                ₹{cashFlowData.inflows.cashSales.toLocaleString()}
+                              </span>
+                            </div>
+                            <div className="flex justify-between items-center text-sm">
+                              <span>Other Income</span>
+                              <span className="text-green-600">
+                                ₹{cashFlowData.inflows.other.toLocaleString()}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="border-t pt-2">
+                            <div className="flex justify-between items-center font-medium">
+                              <span>Total Cash Inflows</span>
+                              <span className="text-green-600 font-bold">
+                                ₹{cashFlowData.totalInflows.toLocaleString()}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
 
-                    <div className="space-y-3 pt-4 border-t">
-                      <div className="text-sm font-medium text-gray-700">Cash Outflows</div>
-                      <div className="space-y-2">
-                        <div className="flex justify-between items-center text-sm">
-                          <span>Inventory Purchases</span>
-                          <span className="text-red-600">
-                            ₹{cashFlowData.outflows.inventoryPurchases.toLocaleString()}
-                          </span>
+                        <div className="space-y-3 pt-4 border-t">
+                          <div className="text-sm font-medium text-gray-700">Cash Outflows</div>
+                          <div className="space-y-2">
+                            <div className="flex justify-between items-center text-sm">
+                              <span>Inventory Purchases</span>
+                              <span className="text-red-600">
+                                ₹{cashFlowData.outflows.inventoryPurchases.toLocaleString()}
+                              </span>
+                            </div>
+                            <div className="flex justify-between items-center text-sm">
+                              <span>Operating Expenses</span>
+                              <span className="text-red-600">
+                                ₹{cashFlowData.outflows.operatingExpenses.toLocaleString()}
+                              </span>
+                            </div>
+                            <div className="flex justify-between items-center text-sm">
+                              <span>Taxes</span>
+                              <span className="text-red-600">
+                                ₹{cashFlowData.outflows.taxes.toLocaleString()}
+                              </span>
+                            </div>
+                            <div className="flex justify-between items-center text-sm">
+                              <span>Other</span>
+                              <span className="text-red-600">
+                                ₹{cashFlowData.outflows.other.toLocaleString()}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="border-t pt-2">
+                            <div className="flex justify-between items-center font-medium">
+                              <span>Total Cash Outflows</span>
+                              <span className="text-red-600 font-bold">
+                                ₹{cashFlowData.totalOutflows.toLocaleString()}
+                              </span>
+                            </div>
+                          </div>
                         </div>
-                        <div className="flex justify-between items-center text-sm">
-                          <span>Operating Expenses</span>
-                          <span className="text-red-600">
-                            ₹{cashFlowData.outflows.operatingExpenses.toLocaleString()}
-                          </span>
-                        </div>
-                        <div className="flex justify-between items-center text-sm">
-                          <span>Taxes</span>
-                          <span className="text-red-600">
-                            ₹{cashFlowData.outflows.taxes.toLocaleString()}
-                          </span>
-                        </div>
-                        <div className="flex justify-between items-center text-sm">
-                          <span>Other</span>
-                          <span className="text-red-600">
-                            ₹{cashFlowData.outflows.other.toLocaleString()}
-                          </span>
-                        </div>
-                      </div>
-                      <div className="border-t pt-2">
-                        <div className="flex justify-between items-center font-medium">
-                          <span>Total Cash Outflows</span>
-                          <span className="text-red-600 font-bold">
-                            ₹{cashFlowData.totalOutflows.toLocaleString()}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
 
-                    <div className="border-t pt-4">
-                      <div className="flex justify-between items-center text-lg font-bold">
-                        <span>Net Cash Flow</span>
-                        <span className={cashFlowData.netCashFlow >= 0 ? 'text-green-600' : 'text-red-600'}>
-                          ₹{cashFlowData.netCashFlow.toLocaleString()}
-                        </span>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                        <div className="border-t pt-4">
+                          <div className="flex justify-between items-center text-lg font-bold">
+                            <span>Net Cash Flow</span>
+                            <span className={cashFlowData.netCashFlow >= 0 ? 'text-green-600' : 'text-red-600'}>
+                              ₹{cashFlowData.netCashFlow.toLocaleString()}
+                            </span>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
 
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Cash Flow Analysis</CardTitle>
-                    <CardDescription>
-                      Key cash flow metrics
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="text-center p-4 bg-green-50 rounded-lg">
-                        <div className="text-2xl font-bold text-green-600">
-                          ₹{cashFlowData.totalInflows.toLocaleString()}
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Cash Flow Analysis</CardTitle>
+                        <CardDescription>
+                          Key cash flow metrics
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="text-center p-4 bg-green-50 rounded-lg">
+                            <div className="text-2xl font-bold text-green-600">
+                              ₹{cashFlowData.totalInflows.toLocaleString()}
+                            </div>
+                            <div className="text-sm text-gray-600">Total Inflows</div>
+                          </div>
+                          <div className="text-center p-4 bg-red-50 rounded-lg">
+                            <div className="text-2xl font-bold text-red-600">
+                              ₹{cashFlowData.totalOutflows.toLocaleString()}
+                            </div>
+                            <div className="text-sm text-gray-600">Total Outflows</div>
+                          </div>
                         </div>
-                        <div className="text-sm text-gray-600">Total Inflows</div>
-                      </div>
-                      <div className="text-center p-4 bg-red-50 rounded-lg">
-                        <div className="text-2xl font-bold text-red-600">
-                          ₹{cashFlowData.totalOutflows.toLocaleString()}
+                        <div className="h-48 flex items-center justify-center bg-muted rounded">
+                          <div className="text-center text-gray-500">
+                            <BarChart3 className="h-12 w-12 mx-auto mb-2" />
+                            <p>Cash Flow Chart Placeholder</p>
+                            <p className="text-sm">Chart visualization coming soon</p>
+                          </div>
                         </div>
-                        <div className="text-sm text-gray-600">Total Outflows</div>
-                      </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="inventory">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Inventory Report</CardTitle>
+                  <CardDescription>Stock levels and inventory status</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+                    <div className="bg-blue-50 p-4 rounded-lg">
+                      <div className="text-2xl font-bold text-blue-600">{stockReportData.totalItems}</div>
+                      <div className="text-sm text-gray-600">Total Items</div>
                     </div>
-                    <div className="h-48 flex items-center justify-center bg-gray-100 rounded">
-                      <div className="text-center text-gray-500">
-                        <BarChart3 className="h-12 w-12 mx-auto mb-2" />
-                        <p>Cash Flow Chart Placeholder</p>
-                        <p className="text-sm">Chart visualization coming soon</p>
-                      </div>
+                    <div className="bg-red-50 p-4 rounded-lg">
+                      <div className="text-2xl font-bold text-red-600">{stockReportData.lowStockCount}</div>
+                      <div className="text-sm text-gray-600">Low Stock Items</div>
                     </div>
-                  </CardContent>
-                </Card>
-              </div>
+                    <div className="bg-green-50 p-4 rounded-lg">
+                      <div className="text-2xl font-bold text-green-600">₹{stockReportData.totalStockValue.toLocaleString()}</div>
+                      <div className="text-sm text-gray-600">Total Stock Value</div>
+                    </div>
+                  </div>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Product</TableHead>
+                        <TableHead>Current Stock</TableHead>
+                        <TableHead>Status</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {stockReportData.stockData.slice(0, 10).map((item, index) => (
+                        <TableRow key={index}>
+                          <TableCell className="font-medium">{item.name}</TableCell>
+                          <TableCell>{item.currentStock} boxes</TableCell>
+                          <TableCell>
+                            <Badge variant={item.status === 'Low' ? 'destructive' : 'default'}>
+                              {item.status}
+                            </Badge>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
             </TabsContent>
 
             <TabsContent value="receivables">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <Card>
                   <CardHeader>
-                    <CardTitle>Accounts Receivable Aging</CardTitle>
-                    <CardDescription>
-                      Outstanding invoices by age
-                    </CardDescription>
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                      <div>
+                        <CardTitle>Accounts Receivable Aging</CardTitle>
+                        <CardDescription>
+                          Outstanding invoices by age
+                        </CardDescription>
+                      </div>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="outline">
+                            <Download className="mr-2 h-4 w-4" />
+                            Export
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                          <DropdownMenuItem onClick={() => handleExportAccountsReceivable('csv')}>
+                            Export as CSV
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleExportAccountsReceivable('json')}>
+                            Export as JSON
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
                   </CardHeader>
                   <CardContent>
                     <Table>
@@ -1310,12 +1888,50 @@ export default function ReportsPage() {
             <TabsContent value="stock">
               <Card>
                 <CardHeader>
-                  <CardTitle>Stock Report</CardTitle>
-                  <CardDescription>
-                    Overview of current inventory levels and status
-                  </CardDescription>
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div>
+                      <CardTitle>Stock Report</CardTitle>
+                      <CardDescription>
+                        Overview of current inventory levels and status
+                      </CardDescription>
+                    </div>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="outline">
+                          <Download className="mr-2 h-4 w-4" />
+                          Export
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent>
+                        <DropdownMenuItem onClick={() => handleExportStockReport('csv')}>
+                          Export as CSV
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleExportStockReport('json')}>
+                          Export as JSON
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
                 </CardHeader>
                 <CardContent>
+                  <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-6">
+                    <div className="bg-blue-50 p-4 rounded-lg">
+                      <div className="text-2xl font-bold text-blue-600">{stockReportData.totalItems}</div>
+                      <div className="text-sm text-gray-600">Total Items</div>
+                    </div>
+                    <div className="bg-red-50 p-4 rounded-lg">
+                      <div className="text-2xl font-bold text-red-600">{stockReportData.lowStockCount}</div>
+                      <div className="text-sm text-gray-600">Low Stock Items</div>
+                    </div>
+                    <div className="bg-yellow-50 p-4 rounded-lg">
+                      <div className="text-2xl font-bold text-yellow-600">{stockReportData.overstockedCount}</div>
+                      <div className="text-sm text-gray-600">Overstocked Items</div>
+                    </div>
+                    <div className="bg-green-50 p-4 rounded-lg">
+                      <div className="text-2xl font-bold text-green-600">₹{stockReportData.totalStockValue.toLocaleString()}</div>
+                      <div className="text-sm text-gray-600">Total Stock Value</div>
+                    </div>
+                  </div>
                   <Table>
                     <TableHeader>
                       <TableRow>
@@ -1351,12 +1967,46 @@ export default function ReportsPage() {
             <TabsContent value="low-stock">
               <Card>
                 <CardHeader>
-                  <CardTitle>Low Stock Items</CardTitle>
-                  <CardDescription>
-                    Products with current stock below minimum stock
-                  </CardDescription>
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div>
+                      <CardTitle>Low Stock Items</CardTitle>
+                      <CardDescription>
+                        Products with current stock below minimum stock
+                      </CardDescription>
+                    </div>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="outline">
+                          <Download className="mr-2 h-4 w-4" />
+                          Export
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent>
+                        <DropdownMenuItem onClick={() => handleExportLowStockReport('csv')}>
+                          Export as CSV
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleExportLowStockReport('json')}>
+                          Export as JSON
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
                 </CardHeader>
                 <CardContent>
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+                    <div className="bg-red-50 p-4 rounded-lg">
+                      <div className="text-2xl font-bold text-red-600">{lowStockReportData.totalLowStock}</div>
+                      <div className="text-sm text-gray-600">Total Low Stock Items</div>
+                    </div>
+                    <div className="bg-orange-50 p-4 rounded-lg">
+                      <div className="text-2xl font-bold text-orange-600">{lowStockReportData.criticalCount}</div>
+                      <div className="text-sm text-gray-600">Critical Items</div>
+                    </div>
+                    <div className="bg-yellow-50 p-4 rounded-lg">
+                      <div className="text-2xl font-bold text-yellow-600">{lowStockReportData.lowCount}</div>
+                      <div className="text-sm text-gray-600">Low Priority Items</div>
+                    </div>
+                  </div>
                   <Table>
                     <TableHeader>
                       <TableRow>
@@ -1394,12 +2044,46 @@ export default function ReportsPage() {
             <TabsContent value="dead-stock">
               <Card>
                 <CardHeader>
-                  <CardTitle>Dead Stock Items</CardTitle>
-                  <CardDescription>
-                    Products with no recent sales and current stock greater than 0
-                  </CardDescription>
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div>
+                      <CardTitle>Dead Stock Items</CardTitle>
+                      <CardDescription>
+                        Products with no recent sales and current stock greater than 0
+                      </CardDescription>
+                    </div>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="outline">
+                          <Download className="mr-2 h-4 w-4" />
+                          Export
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent>
+                        <DropdownMenuItem onClick={() => handleExportDeadStockReport('csv')}>
+                          Export as CSV
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleExportDeadStockReport('json')}>
+                          Export as JSON
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
                 </CardHeader>
                 <CardContent>
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+                    <div className="bg-red-50 p-4 rounded-lg">
+                      <div className="text-2xl font-bold text-red-600">{deadStockReportData.totalDeadStock}</div>
+                      <div className="text-sm text-gray-600">Total Dead Stock Items</div>
+                    </div>
+                    <div className="bg-orange-50 p-4 rounded-lg">
+                      <div className="text-2xl font-bold text-orange-600">{deadStockReportData.criticalCount}</div>
+                      <div className="text-sm text-gray-600">Critical Items</div>
+                    </div>
+                    <div className="bg-yellow-50 p-4 rounded-lg">
+                      <div className="text-2xl font-bold text-yellow-600">₹{deadStockReportData.totalDeadStockValue.toLocaleString()}</div>
+                      <div className="text-sm text-gray-600">Total Dead Stock Value</div>
+                    </div>
+                  </div>
                   <Table>
                     <TableHeader>
                       <TableRow>
@@ -1434,6 +2118,6 @@ export default function ReportsPage() {
           </Tabs>
         </div>
       </main>
-    </>
+    </React.Fragment>
   );
 }

@@ -770,6 +770,72 @@ export interface TaxRate {
 // Updated extended types for new billing system
 export interface PaymentWithRelations extends Payment {
   invoice?: InvoiceWithRelations;
+}
+
+export type UserRole = 'admin' | 'manager' | 'user' | 'viewer';
+
+export interface UserPermissions {
+  inventory: {
+    view: boolean;
+    create: boolean;
+    edit: boolean;
+    delete: boolean;
+  };
+  customers: {
+    view: boolean;
+    create: boolean;
+    edit: boolean;
+    delete: boolean;
+  };
+  suppliers: {
+    view: boolean;
+    create: boolean;
+    edit: boolean;
+    delete: boolean;
+  };
+  billing: {
+    view: boolean;
+    create: boolean;
+    edit: boolean;
+    delete: boolean;
+  };
+  purchase_orders: {
+    view: boolean;
+    create: boolean;
+    edit: boolean;
+    delete: boolean;
+  };
+  deliveries: {
+    view: boolean;
+    create: boolean;
+    edit: boolean;
+    delete: boolean;
+  };
+  reports: {
+    view: boolean;
+    export: boolean;
+  };
+  settings: {
+    view: boolean;
+    edit: boolean;
+  };
+  users: {
+    view: boolean;
+    create: boolean;
+    edit: boolean;
+    delete: boolean;
+  };
+}
+
+export interface UserProfile {
+  id: string;
+  email: string;
+  role: UserRole;
+  permissions: UserPermissions;
+  name?: string;
+  phone?: string;
+  created_at: string;
+  updated_at: string;
 } 
 
  

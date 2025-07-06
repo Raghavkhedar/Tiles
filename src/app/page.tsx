@@ -1,4 +1,3 @@
-import Footer from "@/components/footer";
 import Hero from "@/components/hero";
 import Navbar from "@/components/navbar";
 import {
@@ -21,18 +20,18 @@ export default async function Home() {
   } = await supabase.auth.getUser();
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-gray-50">
+    <div className="min-h-screen bg-background">
       <Navbar />
       <Hero />
 
       {/* Features Section */}
-      <section id="features" className="py-24 bg-white">
+      <section id="features" className="py-24 bg-background">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <h2 className="text-3xl font-bold mb-4">
               Built for Tile Business Success
             </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
+            <p className="text-muted-foreground max-w-2xl mx-auto">
               Everything you need to manage your tile retail or wholesale
               business efficiently, with specialized features designed for the
               tile industry.
@@ -84,7 +83,7 @@ export default async function Home() {
               >
                 <div className="text-orange-600 mb-4">{feature.icon}</div>
                 <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
-                <p className="text-gray-600">{feature.description}</p>
+                <p className="text-muted-foreground">{feature.description}</p>
               </div>
             ))}
           </div>
@@ -92,11 +91,11 @@ export default async function Home() {
       </section>
 
       {/* Security & Reliability Section */}
-      <section className="py-20 bg-gray-50">
+      <section className="py-20 bg-card text-card-foreground">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <h2 className="text-3xl font-bold mb-4">Secure & Reliable</h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
+            <p className="text-muted-foreground max-w-2xl mx-auto">
               Your business data is protected with enterprise-grade security and
               works reliably in any environment.
             </p>
@@ -128,7 +127,7 @@ export default async function Home() {
                   {feature.icon}
                 </div>
                 <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
-                <p className="text-gray-600">{feature.description}</p>
+                <p className="text-muted-foreground">{feature.description}</p>
               </div>
             ))}
           </div>
@@ -136,7 +135,7 @@ export default async function Home() {
       </section>
 
       {/* Stats Section */}
-      <section className="py-20 bg-orange-600 text-white">
+      <section className="py-20 bg-muted">
         <div className="container mx-auto px-4">
           <div className="grid md:grid-cols-3 gap-8 text-center">
             <div>
@@ -156,26 +155,24 @@ export default async function Home() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 bg-gray-50">
+      <section className="py-20 bg-muted">
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-3xl font-bold mb-4">
             Transform Your Tile Business Today
           </h2>
-          <p className="text-gray-600 mb-8 max-w-2xl mx-auto">
+          <p className="text-muted-foreground mb-8 max-w-2xl mx-auto">
             Join hundreds of tile retailers and wholesalers who have streamlined
             their operations with our specialized business management solution.
           </p>
           <a
             href="/dashboard"
-            className="inline-flex items-center px-8 py-4 text-white bg-orange-600 rounded-lg hover:bg-orange-700 transition-colors text-lg font-medium"
+            className="inline-flex items-center px-8 py-4 text-primary-foreground bg-primary rounded-lg hover:bg-primary/80 transition-colors text-lg font-medium"
           >
             Start Your Free Trial
             <ArrowUpRight className="ml-2 w-4 h-4" />
           </a>
         </div>
       </section>
-
-      <Footer />
     </div>
   );
 }

@@ -12,10 +12,10 @@ interface BreadcrumbProps {
 
 export default function Breadcrumb({ items }: BreadcrumbProps) {
   return (
-    <nav className="flex items-center space-x-1 text-sm text-gray-500 mb-4">
+    <nav className="flex items-center space-x-1 text-sm text-muted-foreground mb-4">
       <Link 
         href="/dashboard" 
-        className="flex items-center hover:text-gray-700 transition-colors"
+        className="flex items-center hover:text-foreground transition-colors"
       >
         <Home className="h-4 w-4" />
       </Link>
@@ -25,12 +25,12 @@ export default function Breadcrumb({ items }: BreadcrumbProps) {
           {item.href ? (
             <Link 
               href={item.href}
-              className="hover:text-gray-700 transition-colors"
+              className="hover:text-foreground transition-colors"
             >
               {item.label}
             </Link>
           ) : (
-            <span className="text-gray-900 font-medium">{item.label}</span>
+            <span className="text-foreground font-medium">{item.label}</span>
           )}
         </div>
       ))}

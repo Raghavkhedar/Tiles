@@ -137,7 +137,7 @@ export default function BusinessSettingsPage() {
 
   return (
     <>
-      <div className="w-full bg-gray-50 min-h-screen">
+      <div className="w-full bg-background min-h-screen">
         <div className="container mx-auto px-4 py-8">
           {/* Breadcrumb */}
           <Breadcrumb items={[
@@ -154,10 +154,10 @@ export default function BusinessSettingsPage() {
               </Button>
             </Link>
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">
+              <h1 className="text-3xl font-bold text-foreground">
                 Business Settings
               </h1>
-              <p className="text-gray-600">
+              <p className="text-muted-foreground">
                 Configure your business information for invoices and reports
               </p>
             </div>
@@ -273,7 +273,7 @@ export default function BusinessSettingsPage() {
                         onChange={(e) => setFormData(prev => ({ ...prev, invoice_prefix: e.target.value }))}
                         placeholder="INV"
                       />
-                      <p className="text-sm text-gray-500 mt-1">
+                      <p className="text-sm text-muted-foreground mt-1">
                         This will be used as prefix for invoice numbers (e.g., INV000001)
                       </p>
                     </div>
@@ -286,19 +286,19 @@ export default function BusinessSettingsPage() {
                     <CardTitle>PDF Preview</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="border rounded-lg p-4 bg-white">
+                    <div className="border rounded-lg p-4 bg-card">
                       <div className="text-center mb-4">
                         <h3 className="font-bold text-lg">{formData.business_name || "Your Business Name"}</h3>
                         {formData.business_address && (
-                          <p className="text-sm text-gray-600 mt-1">{formData.business_address}</p>
+                          <p className="text-sm text-muted-foreground mt-1">{formData.business_address}</p>
                         )}
                         {(formData.business_phone || formData.business_email) && (
-                          <p className="text-sm text-gray-600">
+                          <p className="text-sm text-muted-foreground">
                             {[formData.business_phone, formData.business_email].filter(Boolean).join(" | ")}
                           </p>
                         )}
                       </div>
-                      <div className="text-xs text-gray-500">
+                      <div className="text-xs text-muted-foreground">
                         <p>This is how your business information will appear on invoice PDFs</p>
                       </div>
                     </div>

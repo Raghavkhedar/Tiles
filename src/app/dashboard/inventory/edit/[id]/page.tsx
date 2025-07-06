@@ -201,7 +201,7 @@ export default function EditProductPage() {
     return (
       <>
         <DashboardNavbar />
-        <main className="w-full bg-gray-50 min-h-screen">
+        <main className="w-full bg-background min-h-screen">
           <div className="container mx-auto px-4 py-8">
             <div className="flex items-center justify-center py-8">
               <Loader2 className="h-8 w-8 animate-spin" />
@@ -217,10 +217,10 @@ export default function EditProductPage() {
     return (
       <>
         <DashboardNavbar />
-        <main className="w-full bg-gray-50 min-h-screen">
+        <main className="w-full bg-background min-h-screen">
           <div className="container mx-auto px-4 py-8">
             <div className="text-center py-8">
-              <p className="text-gray-600">Product not found</p>
+              <p className="text-muted-foreground">Product not found</p>
               <Link href="/dashboard/inventory">
                 <Button className="mt-4">Back to Inventory</Button>
               </Link>
@@ -234,7 +234,7 @@ export default function EditProductPage() {
   return (
     <>
       <DashboardNavbar />
-      <main className="w-full bg-gray-50 min-h-screen">
+      <main className="w-full bg-background min-h-screen">
         <div className="container mx-auto px-4 py-8">
           {/* Header */}
           <div className="flex items-center justify-between mb-8">
@@ -246,8 +246,8 @@ export default function EditProductPage() {
                 </Button>
               </Link>
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">Edit Product</h1>
-                <p className="text-gray-600">Update product information</p>
+                <h1 className="text-3xl font-bold text-foreground">Edit Product</h1>
+                <p className="text-muted-foreground">Update product information</p>
               </div>
             </div>
             <div className="flex gap-3">

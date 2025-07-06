@@ -1,7 +1,6 @@
 import type { Config } from "tailwindcss";
 
 const config = {
-  darkMode: ["class"],
   content: [
     "./pages/**/*.{ts,tsx}",
     "./components/**/*.{ts,tsx}",
@@ -51,6 +50,22 @@ const config = {
         card: {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
+        },
+        'status-success': {
+          DEFAULT: 'hsl(var(--status-success))',
+          foreground: 'hsl(var(--status-success-foreground))',
+        },
+        'status-warning': {
+          DEFAULT: 'hsl(var(--status-warning))',
+          foreground: 'hsl(var(--status-warning-foreground))',
+        },
+        'status-error': {
+          DEFAULT: 'hsl(var(--status-error))',
+          foreground: 'hsl(var(--status-error-foreground))',
+        },
+        'status-info': {
+          DEFAULT: 'hsl(var(--status-info))',
+          foreground: 'hsl(var(--status-info-foreground))',
         },
       },
       borderRadius: {

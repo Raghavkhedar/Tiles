@@ -355,7 +355,7 @@ export default function BillingPage() {
                   </thead>
                   <tbody>
                     {paginatedInvoices.map((invoice) => (
-                      <tr key={invoice.id} className="border-b hover:bg-gray-50">
+                      <tr key={invoice.id} className="border-b hover:bg-muted">
                         <td className="p-2 font-medium">{invoice.invoice_number}</td>
                         <td className="p-2">{invoice.customer?.name}</td>
                         <td className="p-2">{new Date(invoice.invoice_date).toLocaleDateString()}</td>
@@ -371,7 +371,7 @@ export default function BillingPage() {
                             } else if (paidAmount > 0) {
                               return <span className="text-orange-600 font-medium">₹{remainingAmount.toLocaleString()}</span>;
                             } else {
-                              return <span className="text-gray-500">-</span>;
+                              return <span className="text-muted-foreground">-</span>;
                             }
                           })()}
                         </td>
@@ -381,10 +381,10 @@ export default function BillingPage() {
                               invoice.status === 'Paid' ? 'bg-green-500' :
                               invoice.status === 'Partially Paid' ? 'bg-blue-500' :
                               invoice.status === 'Overdue' ? 'bg-red-500' :
-                              invoice.status === 'Draft' ? 'bg-gray-500' :
+                              invoice.status === 'Draft' ? 'bg-secondary' :
                               invoice.status === 'Sent' ? 'bg-orange-500' :
                               invoice.status === 'Pending' ? 'bg-yellow-500' :
-                              invoice.status === 'Cancelled' ? 'bg-gray-400' :
+                              invoice.status === 'Cancelled' ? 'bg-muted' :
                               'bg-yellow-500'
                             }`} />
                             <Select 

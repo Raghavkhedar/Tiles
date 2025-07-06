@@ -176,7 +176,7 @@ export default function EditPaymentPage() {
 
   return (
     <>
-      <div className="w-full bg-gray-50 min-h-screen">
+      <div className="w-full bg-background min-h-screen">
         <div className="container mx-auto px-4 py-8">
           {/* Breadcrumb */}
           <Breadcrumb items={[
@@ -193,10 +193,10 @@ export default function EditPaymentPage() {
               </Button>
             </Link>
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">
+              <h1 className="text-3xl font-bold text-foreground">
                 Edit Payment
               </h1>
-              <p className="text-gray-600">
+              <p className="text-muted-foreground">
                 Update payment details
               </p>
             </div>
@@ -218,7 +218,7 @@ export default function EditPaymentPage() {
                         <Input
                           value={payment.invoice?.invoice_number || ''}
                           disabled
-                          className="bg-gray-50"
+                          className="bg-muted"
                         />
                       </div>
                       <div>
@@ -226,7 +226,7 @@ export default function EditPaymentPage() {
                         <Input
                           value={payment.invoice?.customer?.name || ''}
                           disabled
-                          className="bg-gray-50"
+                          className="bg-muted"
                         />
                       </div>
                       <div>
@@ -234,7 +234,7 @@ export default function EditPaymentPage() {
                         <Input
                           value={`₹${payment.invoice?.total_amount?.toLocaleString() || '0'}`}
                           disabled
-                          className="bg-gray-50"
+                          className="bg-muted"
                         />
                       </div>
                       <div>
@@ -242,7 +242,7 @@ export default function EditPaymentPage() {
                         <Input
                           value={`₹${payment.invoice?.paid_amount?.toLocaleString() || '0'}`}
                           disabled
-                          className="bg-gray-50"
+                          className="bg-muted"
                         />
                       </div>
                     </div>

@@ -309,7 +309,7 @@ export default function EditInvoicePage() {
 
   return (
     <>
-      <div className="w-full bg-gray-50 min-h-screen">
+      <div className="w-full bg-background min-h-screen">
         <div className="container mx-auto px-4 py-8">
           {/* Breadcrumb */}
           <Breadcrumb items={[
@@ -326,10 +326,10 @@ export default function EditInvoicePage() {
               </Button>
             </Link>
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">
+              <h1 className="text-3xl font-bold text-foreground">
                 Edit Invoice #{invoice.invoice_number}
               </h1>
-              <p className="text-gray-600">
+              <p className="text-muted-foreground">
                 Update invoice details and items
               </p>
             </div>

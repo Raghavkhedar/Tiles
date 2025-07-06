@@ -376,7 +376,7 @@ export default function InventoryPage() {
   return (
     <>
       <DashboardNavbar />
-      <main className="w-full bg-gray-50 min-h-screen">
+      <main className="w-full bg-background min-h-screen pb-24">
         <div className="container mx-auto px-4 py-8">
           {/* Breadcrumb */}
           <Breadcrumb items={[{ label: "Inventory Management" }]} />
@@ -384,10 +384,10 @@ export default function InventoryPage() {
           {/* Header */}
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              <h1 className="text-3xl font-bold text-foreground mb-2">
                 Inventory Management
               </h1>
-              <p className="text-gray-600">
+              <p className="text-muted-foreground">
                 Manage your tile inventory with smart stock tracking
               </p>
             </div>
@@ -537,8 +537,8 @@ export default function InventoryPage() {
                     <div className="absolute inset-0 rounded-full border-4 border-orange-200 animate-pulse"></div>
                   </div>
                   <div className="mt-4 text-center">
-                    <p className="text-lg font-medium text-gray-900">Loading Inventory</p>
-                    <p className="text-sm text-gray-500 mt-1">Fetching your product data...</p>
+                    <p className="text-lg font-medium text-foreground">Loading Inventory</p>
+                    <p className="text-sm text-muted-foreground mt-1">Fetching your product data...</p>
                   </div>
                 </div>
               ) : processedProducts.length === 0 ? (
@@ -547,10 +547,10 @@ export default function InventoryPage() {
                     <Package className="h-16 w-16 mx-auto text-gray-300 mb-4" />
                     <div className="absolute inset-0 bg-gradient-to-r from-orange-100 to-orange-200 rounded-full opacity-20 animate-pulse"></div>
                   </div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">
+                  <h3 className="text-lg font-medium text-foreground mb-2">
                     {searchQuery || (categoryFilter !== 'all') || (stockFilter !== 'all') ? 'No Products Found' : 'No Products Yet'}
                   </h3>
-                  <p className="text-gray-600 mb-6 max-w-md mx-auto">
+                  <p className="text-muted-foreground mb-6 max-w-md mx-auto">
                     {searchQuery || (categoryFilter !== 'all') || (stockFilter !== 'all')
                       ? 'No products match your current filters. Try adjusting your search criteria.'
                       : 'Get started by adding your first tile product to your inventory.'
@@ -579,35 +579,35 @@ export default function InventoryPage() {
                   <div className="overflow-x-auto">
                     <Table>
                       <TableHeader>
-                        <TableRow className="bg-gray-50 hover:bg-gray-50">
+                        <TableRow className="bg-muted hover:bg-muted">
                           <TableHead 
-                            className="font-semibold text-gray-900 cursor-pointer hover:bg-gray-100"
+                            className="font-semibold text-foreground cursor-pointer hover:bg-muted"
                             onClick={() => handleSort('name')}
                           >
                             Product Details {sortBy === 'name' && (sortOrder === 'asc' ? '↑' : '↓')}
                           </TableHead>
                           <TableHead 
-                            className="font-semibold text-gray-900 cursor-pointer hover:bg-gray-100"
+                            className="font-semibold text-foreground cursor-pointer hover:bg-muted"
                             onClick={() => handleSort('category')}
                           >
                             Category {sortBy === 'category' && (sortOrder === 'asc' ? '↑' : '↓')}
                           </TableHead>
-                          <TableHead className="font-semibold text-gray-900">Size</TableHead>
+                          <TableHead className="font-semibold text-foreground">Size</TableHead>
                           <TableHead 
-                            className="font-semibold text-gray-900 cursor-pointer hover:bg-gray-100"
+                            className="font-semibold text-foreground cursor-pointer hover:bg-muted"
                             onClick={() => handleSort('current_stock')}
                           >
                             Stock Level {sortBy === 'current_stock' && (sortOrder === 'asc' ? '↑' : '↓')}
                           </TableHead>
                           <TableHead 
-                            className="font-semibold text-gray-900 cursor-pointer hover:bg-gray-100"
+                            className="font-semibold text-foreground cursor-pointer hover:bg-muted"
                             onClick={() => handleSort('price_per_box')}
                           >
                             Price/Box {sortBy === 'price_per_box' && (sortOrder === 'asc' ? '↑' : '↓')}
                           </TableHead>
-                          <TableHead className="font-semibold text-gray-900">Area/Box</TableHead>
-                          <TableHead className="font-semibold text-gray-900">Status</TableHead>
-                          <TableHead className="font-semibold text-gray-900">Actions</TableHead>
+                          <TableHead className="font-semibold text-foreground">Area/Box</TableHead>
+                          <TableHead className="font-semibold text-foreground">Status</TableHead>
+                          <TableHead className="font-semibold text-foreground">Actions</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -622,38 +622,38 @@ export default function InventoryPage() {
                             >
                               <TableCell className="py-4">
                                 <div>
-                                  <div className="font-medium text-gray-900">{product.name}</div>
-                                  <div className="text-sm text-gray-500">
+                                  <div className="font-medium text-foreground">{product.name}</div>
+                                  <div className="text-sm text-muted-foreground">
                                     SKU: {product.sku}
                                   </div>
-                                  <div className="text-sm text-gray-500">
+                                  <div className="text-sm text-muted-foreground">
                                     Supplier: {product.supplier?.name || 'N/A'}
                                   </div>
                                 </div>
                               </TableCell>
                               <TableCell className="py-4">
-                                <span className="text-gray-700">{product.category?.name || 'N/A'}</span>
+                                <span className="text-muted-foreground">{product.category?.name || 'N/A'}</span>
                               </TableCell>
                               <TableCell className="py-4">
-                                <span className="text-gray-700">{formatSize(product)}</span>
+                                <span className="text-muted-foreground">{formatSize(product)}</span>
                               </TableCell>
                               <TableCell className="py-4">
                                 <div>
-                                  <div className="font-medium text-gray-900">
+                                  <div className="font-medium text-foreground">
                                     {product.current_stock || 0} boxes
                                   </div>
-                                  <div className="text-sm text-gray-500">
+                                  <div className="text-sm text-muted-foreground">
                                     Min: {product.min_stock || 0} | Max: {product.max_stock || 100}
                                   </div>
                                 </div>
                               </TableCell>
                               <TableCell className="py-4">
-                                <span className="font-medium text-gray-900">
+                                <span className="font-medium text-foreground">
                                   ₹{(product.price_per_box || 0).toLocaleString()}
                                 </span>
                               </TableCell>
                               <TableCell className="py-4">
-                                <span className="text-gray-700">{(product.area_per_box || 0).toFixed(2)} m²</span>
+                                <span className="text-muted-foreground">{(product.area_per_box || 0).toFixed(2)} m²</span>
                               </TableCell>
                               <TableCell className="py-4">
                                 <Badge variant={stockStatus.variant} className="font-medium">
@@ -690,7 +690,7 @@ export default function InventoryPage() {
                   {/* Pagination */}
                   {processedProducts.length > itemsPerPage && (
                     <div className="flex items-center justify-between mt-6">
-                      <div className="text-sm text-gray-500">
+                      <div className="text-sm text-muted-foreground">
                         Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, processedProducts.length)} of {processedProducts.length} products
                       </div>
                       <div className="flex gap-2">

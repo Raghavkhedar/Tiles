@@ -4,58 +4,132 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 0 0% 3.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 3.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 3.9%;
-    --primary: 0 0% 9%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 0 0% 96.1%;
-    --secondary-foreground: 0 0% 9%;
-    --muted: 0 0% 96.1%;
-    --muted-foreground: 0 0% 45.1%;
-    --accent: 0 0% 96.1%;
-    --accent-foreground: 0 0% 9%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 89.8%;
-    --input: 0 0% 89.8%;
-    --ring: 0 0% 3.9%;
+    --background: #f6f8fa; /* very light grey-blue */
+    --foreground: #23272f; /* deep muted blue-grey for text */
+    --card: #ffffff; /* white for cards */
+    --card-foreground: #23272f;
+    --popover: #ffffff;
+    --popover-foreground: #23272f;
+    --primary: #4b6fa5; /* muted blue */
+    --primary-foreground: #ffffff;
+    --secondary: #e3e8ee; /* soft light grey-blue */
+    --secondary-foreground: #23272f;
+    --muted: #e3e8ee; /* same as secondary for subtlety */
+    --muted-foreground: #6b7280; /* muted grey for muted text */
+    --accent: #b7c6e2; /* pale blue accent */
+    --accent-foreground: #23272f;
+    --destructive: #e57373; /* muted red for errors */
+    --destructive-foreground: #ffffff;
+    --border: #d1d5db; /* light grey border */
+    --input: #e3e8ee;
+    --ring: #4b6fa5;
     --radius: 0.5rem;
-    --chart-1: 12 76% 61%;
-    --chart-2: 173 58% 39%;
-    --chart-3: 197 37% 24%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 27 87% 67%;
+    --animation-duration: 200ms;
+    --status-success: #4caf8e; /* muted green */
+    --status-success-foreground: #ffffff;
+    --status-warning: #e6b800; /* muted yellow */
+    --status-warning-foreground: #23272f;
+    --status-error: #e57373; /* muted red */
+    --status-error-foreground: #ffffff;
+    --status-info: #4b6fa5; /* muted blue */
+    --status-info-foreground: #ffffff;
   }
 
-  .dark {
-    --background: 0 0% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 0 0% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 0 0% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 0 0% 9%;
-    --secondary: 0 0% 14.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 0 0% 14.9%;
-    --muted-foreground: 0 0% 63.9%;
-    --accent: 0 0% 14.9%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 14.9%;
-    --input: 0 0% 14.9%;
-    --ring: 0 0% 83.1%;
-    --chart-1: 220 70% 50%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
+  /* Accessibility Features */
+  
+  /* High Contrast Mode */
+  .high-contrast {
+    --background: 0 0% 100%;
+    --foreground: 0 0% 0%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 0%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 0%;
+    --primary: 0 0% 0%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 0% 90%;
+    --secondary-foreground: 0 0% 0%;
+    --muted: 0 0% 90%;
+    --muted-foreground: 0 0% 0%;
+    --accent: 0 0% 90%;
+    --accent-foreground: 0 0% 0%;
+    --destructive: 0 100% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 0 0% 0%;
+    --input: 0 0% 0%;
+    --ring: 0 0% 0%;
+  }
+
+  /* Large Text Mode */
+  .large-text {
+    font-size: 1.2em;
+    line-height: 1.6;
+  }
+
+  .large-text h1 { font-size: 2.5em; }
+  .large-text h2 { font-size: 2em; }
+  .large-text h3 { font-size: 1.75em; }
+  .large-text h4 { font-size: 1.5em; }
+  .large-text h5 { font-size: 1.25em; }
+  .large-text h6 { font-size: 1.1em; }
+  .large-text p { font-size: 1.1em; }
+  .large-text button { font-size: 1.1em; padding: 0.75em 1.5em; }
+  .large-text input { font-size: 1.1em; padding: 0.75em; }
+  .large-text select { font-size: 1.1em; padding: 0.75em; }
+  .large-text textarea { font-size: 1.1em; padding: 0.75em; }
+
+  /* Reduced Motion */
+  * {
+    transition-duration: var(--animation-duration);
+    animation-duration: var(--animation-duration);
+  }
+
+  /* Focus Indicators for Accessibility */
+  .focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+  }
+
+  /* Skip to Content Link */
+  .skip-link {
+    position: absolute;
+    top: -40px;
+    left: 6px;
+    background: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+    padding: 8px;
+    text-decoration: none;
+    border-radius: 4px;
+    z-index: 1000;
+  }
+
+  .skip-link:focus {
+    top: 6px;
+  }
+
+  /* Screen Reader Only */
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  /* Keyboard Navigation Focus */
+  [data-focus-visible] {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+  }
+
+  /* High Contrast Focus */
+  .high-contrast [data-focus-visible] {
+    outline: 3px solid hsl(var(--foreground));
+    outline-offset: 3px;
   }
 }
 
