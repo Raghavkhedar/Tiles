@@ -455,7 +455,7 @@ async function DashboardContent() {
           {/* Quick Actions */}
           <Card className="bg-gradient-to-br from-white/80 to-white/50 backdrop-blur-sm border border-navy-200/20 shadow-lg hover:shadow-xl transition-all duration-300">
             <CardHeader>
-              <CardTitle className="text-base sm:text-lg bg-gradient-to-r from-navy-900 to-navy-600 bg-clip-text text-transparent">Quick Actions</CardTitle>
+              <CardTitle className="text-base sm:text-lg text-black">Quick Actions</CardTitle>
               <CardDescription className="text-sm text-navy-600">
                 Common tasks for your tile business
               </CardDescription>
@@ -507,6 +507,12 @@ async function DashboardContent() {
                 <Button variant="outline" className="w-full h-16 sm:h-20 flex flex-col gap-1 sm:gap-2 text-xs sm:text-sm bg-white/60 backdrop-blur-sm border border-navy-200/40 hover:bg-navy-50/50 hover:border-navy-300/40 transition-all duration-300">
                   <Truck className="h-5 w-5 sm:h-6 sm:w-6 text-purple-600" />
                   <span className="text-navy-700">Deliveries</span>
+                </Button>
+              </Link>
+              <Link href="/dashboard/reports">
+                <Button variant="outline" className="w-full h-16 sm:h-20 flex flex-col gap-1 sm:gap-2 text-xs sm:text-sm bg-white/60 backdrop-blur-sm border border-navy-200/40 hover:bg-navy-50/50 hover:border-navy-300/40 transition-all duration-300">
+                  <FileText className="h-5 w-5 sm:h-6 sm:w-6 text-cyan-600" />
+                  <span className="text-navy-700">Reports</span>
                 </Button>
               </Link>
             </CardContent>
